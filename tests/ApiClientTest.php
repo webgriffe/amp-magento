@@ -199,6 +199,55 @@ class ApiClientTest extends TestCase
         $this->assertEquals('Woman', $foundCategories['items'][0]['name']);
     }
 
+    public function testShouldCreateProductAttributeOptions()
+    {
+        Routes::$productAttributes =  [
+            'size' => $this->object(
+                [
+                    'attribute_id' => '103',
+                    'attribute_code' => 'size',
+                    'default_frontend_label' => 'Size',
+                    'options' => [
+                        ['label' => ' ', 'value' => ''],
+                        ['label' => 'Small', 'value' => '1'],
+                        ['label' => 'Medium', 'value' => '2'],
+                        ['label' => 'Large', 'value' => '3']
+                    ],
+                    'source_model' => 'Magento\Eav\Model\Entity\Attribute\Source\Table'
+                ]
+            )
+        ];
+
+        wait($this->client->createProductAttributeOption('size', 'Extra Large'));
+
+        $this->assertCount(5, Routes::$productAttributes['size']->options);
+        $this->assertEquals('Extra Large', Routes::$productAttributes['size']->options[4]->label);
+    }
+
+    public function testShouldGetAllProductAttributeOptions()
+    {
+        Routes::$productAttributes =  [
+            'size' => $this->object(
+                [
+                    'attribute_id' => '103',
+                    'attribute_code' => 'size',
+                    'default_frontend_label' => 'Size',
+                    'options' => [
+                        ['label' => ' ', 'value' => ''],
+                        ['label' => 'Small', 'value' => '1'],
+                        ['label' => 'Medium', 'value' => '2'],
+                        ['label' => 'Large', 'value' => '3']
+                    ],
+                    'source_model' => 'Magento\Eav\Model\Entity\Attribute\Source\Table'
+                ]
+            )
+        ];
+
+        $foundAttributeOptions = wait($this->client->getAllProductAttributeOptions('size'));
+
+        $this->assertCount(4, $foundAttributeOptions);
+    }
+
     public function testShouldCreateShipmentTrackForACompleteShipment()
     {
         $this->assertCount(0, Routes::$shipmentTracks);
