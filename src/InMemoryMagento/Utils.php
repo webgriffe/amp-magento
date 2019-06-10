@@ -12,23 +12,23 @@ use Amp\Promise;
 trait Utils
 {
     /**
-     * @param $str
+     * @param string $str
      * @return Uri
      * @throws HttpException
      */
-    private static function buildUriFromString($str): Uri
+    private static function buildUriFromString(string $str): Uri
     {
         try {
             $uri = new Uri($str);
             $scheme = $uri->getScheme();
 
-            if (($scheme === "http" || $scheme === "https") && $uri->getHost()) {
+            if (($scheme === 'http' || $scheme === 'https') && $uri->getHost()) {
                 return $uri;
             }
 
-            throw new HttpException("Request must specify a valid HTTP URI");
+            throw new HttpException('Request must specify a valid HTTP URI');
         } catch (InvalidUriException $e) {
-            throw new HttpException("Request must specify a valid HTTP URI", 0, $e);
+            throw new HttpException('Request must specify a valid HTTP URI', 0, $e);
         }
     }
 

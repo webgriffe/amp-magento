@@ -16,7 +16,7 @@ class ResponseStub implements ResponseInterface
      */
     private $status;
     /**
-     * @var string
+     * @var string|null
      */
     private $body;
     /**

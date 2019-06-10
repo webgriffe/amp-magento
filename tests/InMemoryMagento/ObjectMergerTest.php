@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Webgriffe\AmpMagento\InMemoryMagento;
+namespace Webgriffe\AmpMagento\Tests\InMemoryMagento;
 
 use PHPUnit\Framework\TestCase;
+use Webgriffe\AmpMagento\InMemoryMagento\ObjectMerger;
+use Webgriffe\AmpMagento\InMemoryMagento\Utils;
 
 class ObjectMergerTest extends TestCase
 {

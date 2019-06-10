@@ -9,6 +9,7 @@ use Amp\Artax\Request;
 use FastRoute\DataGenerator;
 use FastRoute\RouteCollector;
 use FastRoute\RouteParser;
+use Webmozart\Assert\Assert;
 
 class Routes extends RouteCollector
 {
@@ -151,6 +152,7 @@ class Routes extends RouteCollector
     public static function postProductsHandler(Request $request, array $uriParams): ResponseStub
     {
         $product = self::readDecodedRequestBody($request)->product;
+        Assert::isInstanceOf($product, \stdClass::class);
         if (!isset($product->price)) {
             $response = new ResponseStub(
                 400,
@@ -378,7 +380,7 @@ class Routes extends RouteCollector
                 self::$orders[$orderId]->status = 'complete';
             }
             $trackId = count(self::$shipmentTracks) + 1;
-            $newShipmentTrack = new \StdClass();
+            $newShipmentTrack = new \stdClass();
             $newShipmentTrack->order_id = $orderId;
             $newShipmentTrack->track_number = null;
             $newShipmentTrack->comment = null;

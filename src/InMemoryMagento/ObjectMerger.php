@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Webgriffe\AmpMagento\InMemoryMagento;
 
+use Webmozart\Assert\Assert;
+
 final class ObjectMerger
 {
     /**
@@ -20,18 +22,23 @@ final class ObjectMerger
         $productArray1 = self::convertCustomAttributesToAssociativeArray($productArray1);
         $productArray2 = self::convertCustomAttributesToAssociativeArray($productArray2);
         $merge = array_replace_recursive($productArray1, $productArray2);
+        Assert::isArray($merge);
         $merge = self::convertCustomAttributesFromAssociativeArray($merge);
         return self::arrayToObject($merge);
     }
 
     private static function objectToArray(\stdClass $object): array
     {
-        return json_decode(json_encode($object), true);
+        $encoded = json_encode($object);
+        Assert::string($encoded);
+        return json_decode($encoded, true);
     }
 
     private static function arrayToObject(array $array): \stdClass
     {
-        return json_decode(json_encode($array), false);
+        $encoded = json_encode($array);
+        Assert::string($encoded);
+        return json_decode($encoded, false);
     }
 
     private static function convertCustomAttributesToAssociativeArray(array $array): array

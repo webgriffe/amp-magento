@@ -10,6 +10,7 @@ use Amp\Artax\Response;
 use Amp\File;
 use Amp\Promise;
 use function Amp\call;
+use Webmozart\Assert\Assert;
 
 final class ApiClient
 {
@@ -197,14 +198,14 @@ final class ApiClient
     }
 
     /**
-     * @param $childSku
-     * @param $parentSku
+     * @param string $childSku
+     * @param string $parentSku
      * @return Promise
      * @throws \Amp\ByteStream\PendingReadError
      * @throws \TypeError
      * @throws \RuntimeException
      */
-    public function linkChildProductToConfigurable($childSku, $parentSku): Promise
+    public function linkChildProductToConfigurable(string $childSku, string $parentSku): Promise
     {
         return call(function () use ($childSku, $parentSku) {
             $request = $this->createJsonRequest(
@@ -513,7 +514,7 @@ final class ApiClient
     }
 
     /**
-     * @param $data
+     * @param mixed $data
      */
     private function detectAndCleanUtf8(&$data): void
     {
@@ -525,6 +526,7 @@ final class ApiClient
                 },
                 $data
             );
+            Assert::string($data);
             $data = str_replace(
                 array('¤', '¦', '¨', '´', '¸', '¼', '½', '¾'),
                 array('€', 'Š', 'š', 'Ž', 'ž', 'Œ', 'œ', 'Ÿ'),

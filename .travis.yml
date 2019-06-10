@@ -10,4 +10,4 @@ cache:
 before_script:
   - composer install
   - vendor/bin/phpcs --standard=PSR2 src/
-
+  - vendor/bin/phpstan analyse --no-progress -l 5 src tests
