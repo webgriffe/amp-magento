@@ -7,8 +7,8 @@ use Webgriffe\AmpMagento\ApiClient;
 use Webgriffe\AmpMagento\InMemoryMagento\HttpClient;
 use Webgriffe\AmpMagento\InMemoryMagento\Routes;
 use Webgriffe\AmpMagento\InMemoryMagento\Server;
-use function Amp\Promise\wait;
 use Webgriffe\AmpMagento\InMemoryMagento\Utils;
+use function Amp\Promise\wait;
 
 class ApiClientTest extends TestCase
 {
@@ -87,7 +87,7 @@ class ApiClientTest extends TestCase
         $this->assertEquals(10, $createdProduct['price']);
     }
 
-    public function testShouldThrowErroCreatingProductWithoutMandatoryData()
+    public function testShouldThrowExceptionCreatingProductWithoutMandatoryData()
     {
         $this->assertCount(0, Routes::$products);
 
@@ -98,12 +98,104 @@ class ApiClientTest extends TestCase
             ]
         ];
 
-        try {
-            wait($this->client->createProduct($productData));
-        } catch (\RuntimeException $exception) {
-            $this->assertCount(0, Routes::$products);
-            $this->assertContains('Unexpected response status', $exception->getMessage());
-            $this->assertContains('The value of attribute "price" must be set.', $exception->getMessage());
-        }
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage(
+            'Unexpected response status (400) with error message "The value of attribute "price" must be set.'
+        );
+
+        wait($this->client->createProduct($productData));
+    }
+
+    public function testShouldUpdateExistingProduct()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+                'extension_attributes' => ['stock_item' => ['qty' => 100, 'is_in_stock' => true]]
+            ]
+        );
+
+        $productData = ['product' => ['name' => 'New Name']];
+        wait($this->client->updateProduct('SKU-123', $productData));
+
+        $this->assertEquals('New Name', Routes::$products['SKU-123']->name);
+    }
+
+    public function testShouldGetAllProductAttributes()
+    {
+        Routes::$productAttributes =  [
+            'description' => $this->object(
+                [
+                    'attribute_id' => '1',
+                    'attribute_code' => 'description',
+                    'default_frontend_label' => 'Description',
+                    'options' => [],
+                ]
+            ),
+            'material' => $this->object(
+                [
+                    'attribute_id' => '101',
+                    'attribute_code' => 'material',
+                    'default_frontend_label' => 'Material',
+                    'options' => [],
+                ]
+            ),
+            'composition' => $this->object(
+                [
+                    'attribute_id' => '102',
+                    'attribute_code' => 'composition',
+                    'default_frontend_label' => 'Composition',
+                    'options' => [],
+                ]
+            ),
+            'size' => $this->object(
+                [
+                    'attribute_id' => '103',
+                    'attribute_code' => 'size',
+                    'default_frontend_label' => 'Size',
+                    'options' => [
+                        ['label' => ' ', 'value' => ''],
+                        ['label' => 'Small', 'value' => '1'],
+                        ['label' => 'Medium', 'value' => '2'],
+                        ['label' => 'Large', 'value' => '3']
+                    ],
+                    'source_model' => 'Magento\Eav\Model\Entity\Attribute\Source\Table'
+                ]
+            )
+        ];
+
+        $foundAttributes = wait($this->client->getAllProductAttributes());
+
+        $this->assertCount(4, $foundAttributes['items']);
+    }
+
+    public function testShouldGetCategoriesByAttribute()
+    {
+        Routes::$categories[] = $this->object(
+            [
+                'id' => '500',
+                'name' => 'Man',
+                'path' => '1/2/300/400/500',
+                'custom_attributes' => [['attribute_code' => 'sizeguide-type', 'value' => 'sizeguide-man']]
+            ]
+        );
+
+        Routes::$categories[] = $this->object(
+            [
+                'id' => '600',
+                'name' => 'Woman',
+                'path' => '1/2/300/400/600',
+                'custom_attributes' => [['attribute_code' => 'sizeguide-type', 'value' => 'sizeguide-woman']]
+            ]
+        );
+
+        $foundCategories = wait($this->client->getCategoriesByAttribute('sizeguide-type', 'sizeguide-woman'));
+
+        $this->assertCount(1, $foundCategories['items']);
+        $this->assertEquals(1, $foundCategories['total_count']);
+        $this->assertEquals('Woman', $foundCategories['items'][0]['name']);
     }
 }

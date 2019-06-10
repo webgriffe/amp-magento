@@ -83,7 +83,7 @@ trait Utils
             200,
             json_encode(
                 [
-                    'items' => $data,
+                    'items' => array_values($data),
                     'search_criteria' => [],
                     'total_count' => \count($data)
                 ]
