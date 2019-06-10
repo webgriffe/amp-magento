@@ -198,4 +198,108 @@ class ApiClientTest extends TestCase
         $this->assertEquals(1, $foundCategories['total_count']);
         $this->assertEquals('Woman', $foundCategories['items'][0]['name']);
     }
+
+    public function testShouldCreateShipmentTrackForACompleteShipment()
+    {
+        $this->assertCount(0, Routes::$shipmentTracks);
+
+        Routes::$orders = [
+            '0000123' => $this->object(
+                [
+                    'status' => 'processing',
+                    'items' => [['qty_ordered' => 1]]
+                ]
+            )
+        ];
+
+        $trackId = wait(
+            $this->client->createShipmentTrack(
+                '0000123',
+                [
+                    'items' => [['qty' => 1]],
+                    'tracks' => [['track_number' => 'TRACK-123']],
+                    'comment' => ['comment' => 'My comment']
+                ]
+            )
+        );
+
+        $this->assertCount(1, Routes::$shipmentTracks);
+        $this->assertEquals(1, $trackId);
+        $this->assertEquals('0000123', Routes::$shipmentTracks[1]->order_id);
+        $this->assertEquals('My comment', Routes::$shipmentTracks[1]->comment);
+        $this->assertEquals('TRACK-123', Routes::$shipmentTracks[1]->track_number);
+    }
+
+    public function testCreateShipmentTrackShouldCompleteOrderIfItsACompleteShipment()
+    {
+        $this->assertCount(0, Routes::$shipmentTracks);
+
+        Routes::$orders = [
+            '0000123' => $this->object(
+                [
+                    'status' => 'processing',
+                    'items' => [['qty_ordered' => 1]]
+                ]
+            )
+        ];
+
+        wait(
+            $this->client->createShipmentTrack(
+                '0000123',
+                [
+                    'items' => [['qty' => 1]],
+                    'tracks' => [['track_number' => 'TRACK-123']],
+                    'comment' => ['comment' => 'My comment']
+                ]
+            )
+        );
+
+        $this->assertEquals('complete', Routes::$orders['0000123']->status);
+    }
+
+    public function testCreateShipmentTrackShouldNotCompleteOrderIfItsAPartialShipment()
+    {
+        $this->assertCount(0, Routes::$shipmentTracks);
+
+        Routes::$orders = [
+            '0000123' => $this->object(
+                [
+                    'status' => 'processing',
+                    'items' => [['qty_ordered' => 1], ['qty_ordered' => 1]]
+                ]
+            )
+        ];
+
+        wait(
+            $this->client->createShipmentTrack(
+                '0000123',
+                [
+                    'items' => [['qty' => 1]],
+                    'tracks' => [['track_number' => 'TRACK-123']],
+                    'comment' => ['comment' => 'My comment']
+                ]
+            )
+        );
+
+        $this->assertEquals('processing', Routes::$orders['0000123']->status);
+    }
+
+    public function testUpdateStockItemShouldThrowIfInvalidQtyIsGiven()
+    {
+        $this->expectException(\RuntimeException::class);
+        wait($this->client->updateStockItem('product-123', ['stockItem' => ['item_id' => 1, 'qty' => '10,2']]));
+    }
+
+    public function testUpdateStockItemShouldUpdateStockItem()
+    {
+        $this->assertCount(0, Routes::$stockItems);
+
+        Routes::$stockItems['product-123'] = $this->object(['item_id' => 1, 'qty' => '3']);
+
+        $itemId = wait($this->client->updateStockItem('product-123', ['stockItem' => ['item_id' => 1, 'qty' => '10']]));
+
+        $this->assertCount(1, Routes::$stockItems);
+        $this->assertEquals(1, $itemId);
+        $this->assertEquals(10, Routes::$stockItems['product-123']->qty);
+    }
 }
