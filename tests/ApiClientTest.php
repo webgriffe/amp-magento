@@ -248,6 +248,84 @@ class ApiClientTest extends TestCase
         $this->assertCount(4, $foundAttributeOptions);
     }
 
+
+    public function testShouldLinkSimpleProductToConfigurable()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'id' => 1,
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+                'extension_attributes' => ['stock_item' => ['qty' => 100, 'is_in_stock' => true]]
+            ]
+        );
+
+        Routes::$products['PARENT-123'] = $this->object(
+            [
+                'id' => 2,
+                'sku' => 'PARENT-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'configurable',
+                'extension_attributes' => [
+                    'configurable_product_links' => []
+                ]
+            ]
+        );
+
+        wait($this->client->linkChildProductToConfigurable('SKU-123', 'PARENT-123'));
+
+        $this->assertEquals([1], Routes::$products['PARENT-123']->extension_attributes->configurable_product_links);
+    }
+
+    public function testShouldGetAllInvoicesIfNoDateIsNotSpecified()
+    {
+        Routes::$invoices = [
+            $this->object(['order_id' => 123, 'created_at' => '2014-12-12 00:00:00']),
+            $this->object(['order_id' => 456, 'created_at' => '2015-12-12 00:00:00']),
+            $this->object(['order_id' => 789, 'created_at' => '2016-12-12 00:00:00'])
+        ];
+
+        $invoices = wait($this->client->getInvoices());
+
+        $this->assertCount(3, $invoices['items']);
+    }
+
+    public function testShouldGetInvoicesCreatedAfterAGivenDate()
+    {
+        Routes::$invoices = [
+            $this->object(['order_id' => 123, 'created_at' => '2014-12-12 00:00:00']),
+            $this->object(['order_id' => 456, 'created_at' => '2015-12-12 00:00:00']),
+            $this->object(['order_id' => 789, 'created_at' => '2016-12-12 00:00:00'])
+        ];
+
+        $invoices = wait($this->client->getInvoices('2016-01-01 00:00:00'));
+
+        $this->assertCount(1, $invoices['items']);
+    }
+
+    public function testShoulGetOrder()
+    {
+        Routes::$orders['123'] = $this->object(
+            [
+                'id' => 123,
+                'increment_id' => '100000123',
+                'base_currency_code' => 'EUR',
+                'total_paid' => '35',
+                'items' => [
+                    ['item_id' => 1, 'name' => 'T-Shirt'],
+                    ['item_id' => 2, 'name' => 'Baseball cap']
+                ]
+            ]
+        );
+
+        $order = wait($this->client->getOrder(123));
+
+        $this->assertEquals('100000123', $order['increment_id']);
+    }
+
     public function testShouldCreateShipmentTrackForACompleteShipment()
     {
         $this->assertCount(0, Routes::$shipmentTracks);
@@ -333,9 +411,19 @@ class ApiClientTest extends TestCase
         $this->assertEquals('processing', Routes::$orders['0000123']->status);
     }
 
+    public function testGetStockItem()
+    {
+        Routes::$stockItems['SKU-123'] = $this->object(['item_id' => 1, 'qty' => '3']);
+
+        $stockItem = wait($this->client->getStockItem('SKU-123'));
+
+        $this->assertEquals(['item_id' => 1, 'qty' => '3'], $stockItem);
+    }
+
     public function testUpdateStockItemShouldThrowIfInvalidQtyIsGiven()
     {
         $this->expectException(\RuntimeException::class);
+
         wait($this->client->updateStockItem('product-123', ['stockItem' => ['item_id' => 1, 'qty' => '10,2']]));
     }
 
