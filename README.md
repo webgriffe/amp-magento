@@ -39,7 +39,7 @@ var_dump($order);
 ## In Memory Magento
 
 The folder InMemoryMagento contains a fake Magento server and client to be used for automated testing.
-We will soon add some tests to show how to use InMemoryMagento.
+Unit tests in tests/ApiClientTest.php show how to use InMemoryMagento.
 
 Contributing
 ------------
