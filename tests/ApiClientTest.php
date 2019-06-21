@@ -172,6 +172,55 @@ class ApiClientTest extends TestCase
         $this->assertCount(4, $foundAttributes['items']);
     }
 
+    public function testShouldGetProductAttributeByAttributeCode()
+    {
+        Routes::$productAttributes =  [
+            'description' => $this->object(
+                [
+                    'attribute_id' => '1',
+                    'attribute_code' => 'description',
+                    'default_frontend_label' => 'Description',
+                    'options' => [],
+                ]
+            ),
+            'material' => $this->object(
+                [
+                    'attribute_id' => '101',
+                    'attribute_code' => 'material',
+                    'default_frontend_label' => 'Material',
+                    'options' => [],
+                ]
+            ),
+            'composition' => $this->object(
+                [
+                    'attribute_id' => '102',
+                    'attribute_code' => 'composition',
+                    'default_frontend_label' => 'Composition',
+                    'options' => [],
+                ]
+            ),
+            'size' => $this->object(
+                [
+                    'attribute_id' => '103',
+                    'attribute_code' => 'size',
+                    'default_frontend_label' => 'Size',
+                    'options' => [
+                        ['label' => ' ', 'value' => ''],
+                        ['label' => 'Small', 'value' => '1'],
+                        ['label' => 'Medium', 'value' => '2'],
+                        ['label' => 'Large', 'value' => '3']
+                    ],
+                    'source_model' => 'Magento\Eav\Model\Entity\Attribute\Source\Table'
+                ]
+            )
+        ];
+
+        $foundAttributes = wait($this->client->getProductAttributeByCode('composition'));
+
+        $this->assertCount(1, $foundAttributes['items']);
+        $this->assertEquals('102', $foundAttributes['items'][0]['attribute_id']);
+    }
+
     public function testShouldGetCategoriesByAttribute()
     {
         Routes::$categories[] = $this->object(

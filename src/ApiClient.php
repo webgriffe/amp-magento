@@ -126,6 +126,27 @@ final class ApiClient
 
     /**
      * @param string $attributeCode
+     * @return Promise
+     */
+    public function getProductAttributeByCode(string $attributeCode): Promise
+    {
+        return call(function () use ($attributeCode) {
+            $uri = '/V1/products/attributes?' .
+                "searchCriteria[filterGroups][0][filters][0][field]=attribute_code&".
+                "searchCriteria[filterGroups][0][filters][0][value]=$attributeCode";
+            $request = new Request($this->getAbsoluteUri($uri), 'GET');
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
+    /**
+     * @param string $attributeCode
      * @param string $value
      * @return Promise
      * @throws \Amp\ByteStream\PendingReadError
