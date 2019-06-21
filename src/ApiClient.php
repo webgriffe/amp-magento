@@ -14,6 +14,7 @@ use Webmozart\Assert\Assert;
 
 final class ApiClient
 {
+    const DEFAULT_CLIENT_TIMEOUT = 30000;
     /**
      * @var HttpClient
      */
@@ -32,7 +33,10 @@ final class ApiClient
     {
         $this->client = $client;
         if ($this->client instanceof DefaultClient) {
-            $this->client->setOption(HttpClient::OP_TRANSFER_TIMEOUT, 30000);
+            $this->client->setOption(
+                HttpClient::OP_TRANSFER_TIMEOUT,
+                $config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT
+            );
         }
         $this->config = $config;
     }
