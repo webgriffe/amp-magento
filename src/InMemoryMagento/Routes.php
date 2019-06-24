@@ -272,7 +272,8 @@ class Routes extends RouteCollector
         }
         $childId = self::$products[self::readDecodedRequestBody($request)->childSku]->id;
         $parent = self::$products[$parentSku];
-        if (\in_array($childId, $parent->extension_attributes->configurable_product_links, true)) {
+        $configurableProductLinks = $parent->extension_attributes->configurable_product_links ?? null;
+        if (!empty($configurableProductLinks) && \in_array($childId, $configurableProductLinks, true)) {
             return new ResponseStub(400, json_encode(['message' => 'Il prodotto è già stato associato']));
         }
         $parent->extension_attributes->configurable_product_links[] = $childId;
