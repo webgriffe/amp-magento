@@ -127,7 +127,7 @@ class Routes extends RouteCollector
         );
     }
 
-    public function getProductAttributesOptionsForStoreViewHandler(Request $request, array $uriParams): ResponseStub
+    public static function getProductAttributesOptionsForStoreViewHandler(Request $request, array $uriParams): ResponseStub
     {
         // TODO: To be implemented
         return new ResponseStub(200, json_encode(['message' => 'Done nothing']));
