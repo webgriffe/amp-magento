@@ -124,6 +124,11 @@ class ApiClientTest extends TestCase
         $this->assertEquals('New Name', Routes::$products['SKU-123']->name);
     }
 
+    public function testShouldUpdateTranslatedAttributesForExistingProduct()
+    {
+        $this->markTestIncomplete('TODO: This should be tested');
+    }
+
     public function testShouldGetAllProductAttributes()
     {
         Routes::$productAttributes =  [
@@ -170,6 +175,11 @@ class ApiClientTest extends TestCase
         $foundAttributes = wait($this->client->getAllProductAttributes());
 
         $this->assertCount(4, $foundAttributes['items']);
+    }
+
+    public function testShouldGetAllProductAttributesForTheGivenStoreView()
+    {
+        $this->markTestIncomplete('TODO: This should be tested');
     }
 
     public function testShouldGetProductAttributeByAttributeCode()
@@ -482,7 +492,11 @@ class ApiClientTest extends TestCase
             ),
         ];
 
-        $orders = wait($this->client->getOrders([['field' => 'increment_id', 'value' => ['100000001', '100000003'], 'condition' => 'in']]));
+        $orders = wait(
+            $this->client->getOrders(
+                [['field' => 'increment_id', 'value' => ['100000001', '100000003'], 'condition' => 'in']]
+            )
+        );
 
         $this->assertCount(2, $orders['items']);
     }

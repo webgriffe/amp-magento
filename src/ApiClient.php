@@ -94,10 +94,14 @@ final class ApiClient
      * @throws \TypeError
      * @throws \RuntimeException
      */
-    public function updateProduct(string $sku, array $productData): Promise
+    public function updateProduct(string $sku, array $productData, string $storeCode = null): Promise
     {
-        return call(function () use ($sku, $productData) {
-            $request = $this->createJsonRequest($this->getAbsoluteUri('/V1/products/' . $sku), 'PUT', $productData);
+        return call(function () use ($sku, $productData, $storeCode) {
+            $request = $this->createJsonRequest(
+                $this->getAbsoluteUri('/V1/products/' . $sku, $storeCode),
+                'PUT',
+                $productData
+            );
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
@@ -206,12 +210,12 @@ final class ApiClient
      * @throws \TypeError
      * @throws \RuntimeException
      */
-    public function getAllProductAttributeOptions(string $attributeCode): Promise
+    public function getAllProductAttributeOptions(string $attributeCode, string $storeCode = null): Promise
     {
-        return call(function () use ($attributeCode) {
+        return call(function () use ($attributeCode, $storeCode) {
             $randomParam = time() . random_int(0, 1000);
             $uri = '/V1/products/attributes/' . $attributeCode . '/options?p=' . $randomParam;
-            $request = new Request($this->getAbsoluteUri($uri), 'GET');
+            $request = new Request($this->getAbsoluteUri($uri, $storeCode), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
@@ -542,9 +546,9 @@ final class ApiClient
      * @param string $relativeUri
      * @return string
      */
-    private function getAbsoluteUri(string $relativeUri): string
+    private function getAbsoluteUri(string $relativeUri, string $storeCode = null): string
     {
-        $storeCode = $this->config['storeCode'] ?? 'all';
+        $storeCode = $storeCode ?? 'all';
         return rtrim($this->config['baseUrl']) . '/rest/' . $storeCode . $relativeUri;
     }
 

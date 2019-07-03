@@ -132,6 +132,9 @@ final class Server
     private function validateRequestAgainstSchema(Request $request): void
     {
         $uri = self::buildUriFromString($request->getUri());
+        if (!strpos($uri->getPath(), 'rest/all/V1')) {
+            return;
+        };
         $this->assertRequestHeadersMatch(
             $request->getHeaders(),
             $this->schema,
@@ -162,6 +165,9 @@ final class Server
     private function validateResponseAgainstSchema(Request $request, Response $response): void
     {
         $uri = self::buildUriFromString($request->getUri());
+        if (!strpos($uri->getPath(), 'rest/all/V1')) {
+            return;
+        };
         $responseStatus = $response->getStatus();
         $responseBody = Promise\wait($response->getBody()->read());
         $this->assertResponseHeadersMatch(

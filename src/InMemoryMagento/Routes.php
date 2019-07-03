@@ -58,6 +58,7 @@ class Routes extends RouteCollector
         $this->addRoute('GET', '/rest/all/V1/products/{sku}', [__CLASS__, 'getProductsHandler']);
         $this->addRoute('POST', '/rest/all/V1/products', [__CLASS__, 'postProductsHandler']);
         $this->addRoute('PUT', '/rest/all/V1/products/{sku}', [__CLASS__, 'putProductsHandler']);
+        $this->addRoute('PUT', '/rest/{storeCode}/V1/products/{sku}', [__CLASS__, 'putProductsForStoreViewHandler']);
         $this->addRoute(
             'POST',
             '/rest/all/V1/products/attributes/{attributeCode}/options',
@@ -67,6 +68,11 @@ class Routes extends RouteCollector
             'GET',
             '/rest/all/V1/products/attributes/{attributeCode}/options',
             [__CLASS__, 'getProductAttributesOptionsHandler']
+        );
+        $this->addRoute(
+            'GET',
+            '/rest/{storeCode}/V1/products/attributes/{attributeCode}/options',
+            [__CLASS__, 'getProductAttributesOptionsForStoreViewHandler']
         );
         $this->addRoute(
             'POST',
@@ -83,6 +89,12 @@ class Routes extends RouteCollector
             [__CLASS__, 'putProductsStockItemsHandler']
         );
         $this->addRoute('POST', '/rest/all/V1/order/{orderId}/ship', [__CLASS__, 'postOrderShipHandler']);
+    }
+
+    public static function putProductsForStoreViewHandler()
+    {
+        // TODO: To be implemented
+        return new ResponseStub(200, json_encode(['message' => 'Done nothing']));
     }
 
     /**
@@ -113,6 +125,12 @@ class Routes extends RouteCollector
             self::$productAttributes,
             self::buildUriFromString($request->getUri())->getQuery()
         );
+    }
+
+    public function getProductAttributesOptionsForStoreViewHandler(Request $request, array $uriParams): ResponseStub
+    {
+        // TODO: To be implemented
+        return new ResponseStub(200, json_encode(['message' => 'Done nothing']));
     }
 
     /**
