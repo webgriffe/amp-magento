@@ -280,35 +280,86 @@ final class ApiClient
         });
     }
 
+    /**
+     * @param array $filters Filters to apply to the search, specified as a multidimensional array. Elements of the
+     *                      outermost array are considered to be conditions in AND. Element of the second level are in
+     *                      OR. Elements at the last level must contain the 'field', 'value' and 'condition' keys.
+
+     *                      Examples:
+     *                      [
+     *                          ['field' => 'x', 'condition' => 'eq', 'value' => 'A'],
+     *                      ]
+     *                      is rendered as
+     *                      WHERE x = 'A'
+     *
+     *                      [
+     *                          ['field' => 'x', 'condition' => 'lt', 'value' => 10],
+     *                          ['field' => 'y', 'condition' => 'like', 'value' => 'ABC%'],
+     *                      ]
+     *                      results in:
+     *                      WHERE x < 10 AND y LIKE 'ABC%'
+     *
+     *                      [
+     *                          ['field' => 'x', 'condition' => 'in', 'value' => ['A', 'B', 'C']],
+     *                          [
+     *                              ['field' => 'y', 'condition' => 'null', 'value' => true],
+     *                              ['field' => 'y', 'condition' => 'lt', 'value' => 100],
+     *                          ]
+     *                      ]
+     *                      produces:
+     *                      WHERE x IN ('A', 'B', 'C') AND (y IS NULL OR y < 100)
+     *
+     *                      This mirrors the underlying Magento API:
+     *                      https://devdocs.magento.com/guides/v2.3/rest/performing-searches.html
+     * @return Promise
+     */
     public function getOrders(array $filters = []): Promise
     {
         return call(function () use ($filters) {
+            $uri = '/V1/orders';
+
+            //@todo: This logic should be fairly generic. Perhaps this can be used somewhere else? If so, extract it in
+            //a separate method
             if (count($filters) == 0) {
-                $uri = '/V1/orders?searchCriteria=[]';
+                //easy peasy
+                $uri .= '?searchCriteria=[]';
             } else {
-                $uri = '/V1/orders';
-                $index = 0;
-                foreach ($filters as $filter) {
-                    $field = $filter['field'];
-                    $value = $filter['value'];
-                    $condition = $filter['condition'];
+                $groupIndex = 0;
+                foreach ($filters as $filterGroup) {
+                    if (array_key_exists('field', $filterGroup) &&
+                        array_key_exists('value', $filterGroup) &&
+                        array_key_exists('condition', $filterGroup)) {
+                        //Single element group. Make it a single element array for uniformity
+                        $filterGroup = [$filterGroup];
+                    }
 
-                    $filterGroupUrl = sprintf(
-                        "searchCriteria[filterGroups][{$index}][filters][0][field]=%s" .
-                        "&searchCriteria[filterGroups][{$index}][filters][0][value]=%s" .
-                        "&searchCriteria[filterGroups][{$index}][filters][0][conditionType]=%s",
-                        urlencode($field),
-                        urlencode($value),
-                        urlencode($condition)
-                    );
+                    $filterIndex = 0;
+                    $filterGroupUrls = [];
+                    foreach ($filterGroup as $filter) {
+                        $value = $filter['value'];
+                        if (is_array($value)) {
+                            $value = implode(',', $value);
+                        }
 
-                    if ($index == 0) {
+                        $filterGroupUrls[] = sprintf(
+                            "searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][field]=%s" .
+                            "&searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][value]=%s" .
+                            "&searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][conditionType]=%s",
+                            urlencode($filter['field']),
+                            urlencode($value),
+                            urlencode($filter['condition'])
+                        );
+                        ++$filterIndex;
+                    }
+                    $filterGroupUrl = implode('&', $filterGroupUrls);
+
+                    if ($groupIndex == 0) {
                         $uri .= '?'.$filterGroupUrl;
                     } else {
                         $uri .= '&'.$filterGroupUrl;
                     }
 
-                    ++$index;
+                    ++$groupIndex;
                 }
             }
 

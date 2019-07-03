@@ -71,13 +71,37 @@ trait Utils
                 }
             }
 
-            if (empty($filter['conditionType']) || $filter['conditionType'] === 'eq') {
-                return $actualValue === $filter['value'];
+            if (empty($filter['conditionType'])) {
+                $filter['conditionType'] = 'eq';
             }
-            if ($filter['conditionType'] === 'gt') {
-                return $actualValue > $filter['value'];
+
+            switch ($filter['conditionType']) {
+                case 'eq':
+                    return $actualValue === $filter['value'];
+                case 'neq':
+                    return $actualValue !== $filter['value'];
+                case 'gt':
+                    return $actualValue > $filter['value'];
+                case 'gteq':
+                    return $actualValue >= $filter['value'];
+                case 'lt':
+                    return $actualValue < $filter['value'];
+                case 'lteq':
+                    return $actualValue <= $filter['value'];
+                case 'in':
+                    return in_array($actualValue, explode(',', $filter['value']));
+                case 'nin':
+                    return !in_array($actualValue, explode(',', $filter['value']));
+                case 'null':
+                    return is_null($actualValue);
+                case 'notnull':
+                    return !is_null($actualValue);
+                case 'like':
+                    $regex = str_replace('%', '.*', '/'.preg_quote($filter['value'], '/').'/');
+                    return preg_match($regex, $actualValue);
+                default:
+                    throw new \Error(sprintf('Condition Type "%s" not supported', $filter['conditionType']));
             }
-            throw new \Error(sprintf('Condition Type "%s" not supported', $filter['conditionType']));
         });
         return new ResponseStub(
             200,
