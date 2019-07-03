@@ -251,7 +251,8 @@ final class ApiClient
             $error = json_decode($responseBody, true);
             // TODO Improvement: make a more robust way to handle product already linked to configurable error
             $productAlreadyLinkedMessage = ($error['message'] === 'Product has been already attached') ||
-                ($error['message'] === 'Il prodotto è già stato associato');
+                ($error['message'] === 'Il prodotto è già stato associato') ||
+                ($error['message'] === 'The product is already attached.');
             if ($productAlreadyLinkedMessage && $response->getStatus() === 400) {
                 return true;
             }
