@@ -280,6 +280,48 @@ final class ApiClient
         });
     }
 
+    public function getOrders(array $filters = []): Promise
+    {
+        return call(function () use ($filters) {
+            if (count($filters) == 0) {
+                $uri = '/V1/orders?searchCriteria=[]';
+            } else {
+                $uri = '/V1/orders';
+                $index = 0;
+                foreach ($filters as $filter) {
+                    $field = $filter['field'];
+                    $value = $filter['value'];
+                    $condition = $filter['condition'];
+
+                    $filterGroupUrl = sprintf(
+                        "searchCriteria[filterGroups][{$index}][filters][0][field]=%s" .
+                        "&searchCriteria[filterGroups][{$index}][filters][0][value]=%s" .
+                        "&searchCriteria[filterGroups][{$index}][filters][0][conditionType]=%s",
+                        urlencode($field),
+                        urlencode($value),
+                        urlencode($condition)
+                    );
+
+                    if ($index == 0) {
+                        $uri .= '?'.$filterGroupUrl;
+                    } else {
+                        $uri .= '&'.$filterGroupUrl;
+                    }
+
+                    ++$index;
+                }
+            }
+
+            $request = new Request($this->getAbsoluteUri($uri), 'GET');
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
 
     /**
      * @param int $orderId

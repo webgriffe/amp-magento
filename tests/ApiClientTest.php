@@ -355,6 +355,94 @@ class ApiClientTest extends TestCase
         $this->assertCount(1, $invoices['items']);
     }
 
+    public function testShouldGetAllOrdersIfNoFilterIsSpecified()
+    {
+        Routes::$orders = [
+            $this->object(
+                [
+                    'id' => 1,
+                    'increment_id' => '100000001',
+                    'base_currency_code' => 'EUR',
+                    'total_paid' => '35',
+                    'items' => [
+                        ['item_id' => 1, 'name' => 'T-Shirt'],
+                        ['item_id' => 2, 'name' => 'Baseball cap']
+                    ]
+                ]
+            ),
+            $this->object(
+                [
+                    'id' => 2,
+                    'increment_id' => '100000002',
+                    'base_currency_code' => 'EUR',
+                    'total_paid' => '20',
+                    'items' => [
+                        ['item_id' => 3, 'name' => 'T-Shirt'],
+                    ]
+                ]
+            ),
+            $this->object(
+                [
+                    'id' => 3,
+                    'increment_id' => '100000003',
+                    'base_currency_code' => 'EUR',
+                    'total_paid' => '15',
+                    'items' => [
+                        ['item_id' => 4, 'name' => 'Baseball cap']
+                    ]
+                ]
+            ),
+        ];
+
+        $orders = wait($this->client->getOrders());
+
+        $this->assertCount(3, $orders['items']);
+    }
+
+    public function testShouldGetAllOrdersMatchingSpecificFilters()
+    {
+        Routes::$orders = [
+            $this->object(
+                [
+                    'id' => 1,
+                    'increment_id' => '100000001',
+                    'base_currency_code' => 'EUR',
+                    'total_paid' => '35',
+                    'items' => [
+                        ['item_id' => 1, 'name' => 'T-Shirt'],
+                        ['item_id' => 2, 'name' => 'Baseball cap']
+                    ]
+                ]
+            ),
+            $this->object(
+                [
+                    'id' => 2,
+                    'increment_id' => '100000002',
+                    'base_currency_code' => 'EUR',
+                    'total_paid' => '20',
+                    'items' => [
+                        ['item_id' => 3, 'name' => 'T-Shirt'],
+                    ]
+                ]
+            ),
+            $this->object(
+                [
+                    'id' => 3,
+                    'increment_id' => '100000003',
+                    'base_currency_code' => 'EUR',
+                    'total_paid' => '15',
+                    'items' => [
+                        ['item_id' => 4, 'name' => 'Baseball cap']
+                    ]
+                ]
+            ),
+        ];
+
+        $orders = wait($this->client->getOrders([['field' => 'total_paid', 'value' => '20', 'condition' => 'gt']]));
+
+        $this->assertCount(1, $orders['items']);
+    }
+
     public function testShoulGetOrder()
     {
         Routes::$orders['123'] = $this->object(

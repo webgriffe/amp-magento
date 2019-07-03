@@ -74,7 +74,8 @@ class Routes extends RouteCollector
             [__CLASS__, 'postConfigurableProductsChildHandler']
         );
         $this->addRoute('GET', '/rest/all/V1/invoices', [__CLASS__, 'getInvoicesHandler']);
-        $this->addRoute('GET', '/rest/all/V1/orders/{orderId}', [__CLASS__, 'getOrdersHandler']);
+        $this->addRoute('GET', '/rest/all/V1/orders/{orderId}', [__CLASS__, 'getOrderHandler']);
+        $this->addRoute('GET', '/rest/all/V1/orders', [__CLASS__, 'getOrdersHandler']);
         $this->addRoute('GET', '/rest/all/V1/stockItems/{sku}', [__CLASS__, 'getStockItemsHandler']);
         $this->addRoute(
             'PUT',
@@ -299,7 +300,7 @@ class Routes extends RouteCollector
      * @param array $uriParams
      * @return ResponseStub
      */
-    public static function getOrdersHandler(Request $request, array $uriParams): ResponseStub
+    public static function getOrderHandler(Request $request, array $uriParams): ResponseStub
     {
         $orderId = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order not found.']));
@@ -307,6 +308,20 @@ class Routes extends RouteCollector
             $response = new ResponseStub(200, json_encode(self::$orders[$orderId]));
         }
         return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @param array $uriParams
+     * @return ResponseStub
+     * @throws HttpException
+     */
+    public static function getOrdersHandler(Request $request, array $uriParams): ResponseStub
+    {
+        return self::createSearchCriteriaResponse(
+            self::$orders,
+            self::buildUriFromString($request->getUri())->getQuery()
+        );
     }
 
     /**
