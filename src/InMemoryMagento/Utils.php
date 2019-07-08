@@ -61,7 +61,8 @@ trait Utils
             $field = $filter['field'];
             $actualValue = $element->$field ?? null;
             if (null === $actualValue) {
-                if ($customAttributes = $element->custom_attributes) {
+                if (property_exists($element, 'custom_attributes') && $element->custom_attributes) {
+                    $customAttributes = $element->custom_attributes;
                     $actualValue = array_reduce($customAttributes, function ($carry, $customAttribute) use ($field) {
                         if ($customAttribute->attribute_code === $field) {
                             return $customAttribute->value;
