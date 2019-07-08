@@ -115,7 +115,7 @@ trait Utils
 
             $data = $groupData;
         }
-        
+
         return new ResponseStub(
             200,
             json_encode(

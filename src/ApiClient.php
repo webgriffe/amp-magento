@@ -496,6 +496,25 @@ final class ApiClient
         });
     }
 
+    /**
+     * @param string $uriPath
+     * @param array $payload
+     * @return Promise
+     */
+    public function makePutRequest(string $uriPath, array $payload): Promise
+    {
+        return call(function () use ($uriPath, $payload) {
+            $request = $this->createJsonRequest($this->getAbsoluteUri($uriPath), 'PUT', $payload);
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
 
     /**
      * @param string $uriPath
