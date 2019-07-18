@@ -186,10 +186,16 @@ final class ApiClient
      * @throws \TypeError
      * @throws \RuntimeException
      */
-    public function createProductAttributeOption(string $attributeCode, string $label): Promise
-    {
-        return call(function () use ($label, $attributeCode) {
+    public function createProductAttributeOption(
+        string $attributeCode,
+        string $label,
+        array $translations = []
+    ): Promise {
+        return call(function () use ($label, $attributeCode, $translations) {
             $newOption = ['option' => ['label' => $label]];
+            if (!empty($translations)) {
+                $newOption['option']['store_labels'] = $translations;
+            }
             $relativeUri = '/V1/products/attributes/' . $attributeCode . '/options';
             $request = $this->createJsonRequest($this->getAbsoluteUri($relativeUri), 'POST', $newOption);
             /** @var Response $response */
