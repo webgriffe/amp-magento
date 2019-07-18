@@ -24,13 +24,20 @@ final class Server
     private $schema;
 
     /**
+     * @var string
+     */
+    private $mageVersion;
+
+    /**
      * @var FastRoute\Dispatcher
      */
     private $dispatcher;
 
     public function __construct(string $swaggerSchemaJson, Routes $inMemoryMagentoRoutes)
     {
-        $this->schema = new SchemaManager(json_decode($swaggerSchemaJson, false));
+        $swaggerSchema = json_decode($swaggerSchemaJson, false);
+        $this->schema = new SchemaManager($swaggerSchema);
+        $this->mageVersion = $swaggerSchema->info->version;
         $this->dispatcher = new GroupCountBased($inMemoryMagentoRoutes->getData());
     }
 
@@ -103,7 +110,7 @@ final class Server
         }
         $handler = $routeInfo[1];
         $vars = $routeInfo[2];
-        return $handler($request, $vars);
+        return $handler($request, $vars, $this->mageVersion);
     }
 
     /**
