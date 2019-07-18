@@ -68,11 +68,14 @@ trait Utils
                     if (null === $actualValue) {
                         if (property_exists($element, 'custom_attributes') && $element->custom_attributes) {
                             $customAttributes = $element->custom_attributes;
-                            $actualValue = array_reduce($customAttributes, function ($carry, $customAttribute) use ($field) {
-                                if ($customAttribute->attribute_code === $field) {
-                                    return $customAttribute->value;
+                            $actualValue = array_reduce(
+                                $customAttributes,
+                                function ($carry, $customAttribute) use ($field) {
+                                    if ($customAttribute->attribute_code === $field) {
+                                        return $customAttribute->value;
+                                    }
                                 }
-                            });
+                            );
                         }
                     }
 
