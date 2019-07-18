@@ -250,15 +250,22 @@ class Routes extends RouteCollector
      * @return ResponseStub
      * @throws \Throwable
      */
-    public static function postProductsAttributesOptionsHandler(Request $request, array $uriParams): ResponseStub
-    {
+    public static function postProductsAttributesOptionsHandler(
+        Request $request,
+        array $uriParams,
+        string $mageVersion
+    ): ResponseStub {
         $attributeCode = $uriParams['attributeCode'];
         $response = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
         if (!empty(self::$productAttributes[$attributeCode])) {
             $option = self::readDecodedRequestBody($request)->option;
             $option->value = (string)random_int(1000, 10000);
             self::$productAttributes[$attributeCode]->options[] = $option;
-            $response = new ResponseStub(200, json_encode(true));
+            $responseBody = true;
+            if ($mageVersion === '2.3') {
+                $responseBody = sprintf('id_%s', $option->value);
+            }
+            $response = new ResponseStub(200, json_encode($responseBody));
         }
         return $response;
     }
