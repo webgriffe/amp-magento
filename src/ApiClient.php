@@ -121,7 +121,7 @@ final class ApiClient
     public function getAllProductAttributes(): Promise
     {
         return call(function () {
-            $request = new Request($this->getAbsoluteUri('/V1/products/attributes?searchCriteria=""'), 'GET');
+            $request = new Request($this->getAbsoluteUri('/V1/products/attributes?searchCriteria=[]'), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {

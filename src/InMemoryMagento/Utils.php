@@ -45,7 +45,7 @@ trait Utils
             throw new \Error('Parameter searchCriteria is required');
         }
 
-        if (!$parsedQuery['searchCriteria'] || !$parsedQuery['searchCriteria']['filterGroups']) {
+        if (empty($parsedQuery['searchCriteria']) || empty($parsedQuery['searchCriteria']['filterGroups'])) {
             return new ResponseStub(
                 200,
                 json_encode(
