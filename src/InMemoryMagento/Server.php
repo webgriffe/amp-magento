@@ -47,12 +47,16 @@ final class Server
         if (!is_array($swaggerSchemaParams)) {
             $swaggerSchema       = json_decode($swaggerSchemaParams, false);
             $this->schema['all'] = new SchemaManager($swaggerSchema);
-            $mageVersion = $swaggerSchema->info->version;
+            $mageVersion         = $swaggerSchema->info->version;
         } else {
-            array_filter($swaggerSchemaParams, function($schema, $code){
-                $swaggerSchema       = json_decode($schema, false);
-                $this->schema[$code] = new SchemaManager($swaggerSchema);
-            }, ARRAY_FILTER_USE_BOTH);
+            array_filter(
+                $swaggerSchemaParams,
+                function ($schema, $code) {
+                    $swaggerSchema       = json_decode($schema, false);
+                    $this->schema[$code] = new SchemaManager($swaggerSchema);
+                },
+                ARRAY_FILTER_USE_BOTH
+            );
         }
         $this->mageVersion = $mageVersion;
         $this->dispatcher  = new GroupCountBased($inMemoryMagentoRoutes->getData());
