@@ -19,9 +19,9 @@ final class Server
     use Utils;
 
     /**
-     * @var SchemaManager
+     * @var array
      */
-    private $schema;
+    private $schema = ['all'];
 
     /**
      * @var string
@@ -33,16 +33,34 @@ final class Server
      */
     private $dispatcher;
 
-    public function __construct(string $swaggerSchemaJson, Routes $inMemoryMagentoRoutes)
+    /**
+     * Server constructor.
+     *
+     * @param string|array $swaggerSchemaParams
+     * @param Routes       $inMemoryMagentoRoutes
+     */
+    public function __construct($swaggerSchemaParams, Routes $inMemoryMagentoRoutes)
     {
-        $swaggerSchema = json_decode($swaggerSchemaJson, false);
-        $this->schema = new SchemaManager($swaggerSchema);
-        $this->mageVersion = $swaggerSchema->info->version;
-        $this->dispatcher = new GroupCountBased($inMemoryMagentoRoutes->getData());
+        // @TODO: what version we have to take in case of multiple schema?
+        $mageVersion = null;
+
+        if (!is_array($swaggerSchemaParams)) {
+            $swaggerSchema       = json_decode($swaggerSchemaParams, false);
+            $this->schema['all'] = new SchemaManager($swaggerSchema);
+            $mageVersion = $swaggerSchema->info->version;
+        } else {
+            array_filter($swaggerSchemaParams, function($schema, $code){
+                $swaggerSchema       = json_decode($schema, false);
+                $this->schema[$code] = new SchemaManager($swaggerSchema);
+            }, ARRAY_FILTER_USE_BOTH);
+        }
+        $this->mageVersion = $mageVersion;
+        $this->dispatcher  = new GroupCountBased($inMemoryMagentoRoutes->getData());
     }
 
     /**
      * @param string|Request $uriOrRequest
+     *
      * @return Response
      * @throws HttpException
      * @throws \Throwable
@@ -59,22 +77,25 @@ final class Server
                 json_encode(
                     [
                         'message' => $error->getMessage(),
-                        'code' => $error->getCode(),
-                        'trace' => $error->getTraceAsString()
+                        'code'    => $error->getCode(),
+                        'trace'   => $error->getTraceAsString()
                     ]
                 )
             );
+
             return $response;
         }
 
         $response = $this->doProcessRequest($request);
 
         $this->validateResponseAgainstSchema($request, $response);
+
         return $response;
     }
 
     /**
      * @param Request $request
+     *
      * @return Response
      * @throws HttpException
      * @throws \Throwable
@@ -109,12 +130,14 @@ final class Server
             throw new \Error(sprintf('Unexpected route info "%s".', $routeInfo[0]));
         }
         $handler = $routeInfo[1];
-        $vars = $routeInfo[2];
+        $vars    = $routeInfo[2];
+
         return $handler($request, $vars, $this->mageVersion);
     }
 
     /**
      * @param Request|string $uriOrRequest
+     *
      * @return Request
      * @throws HttpException
      */
@@ -134,31 +157,38 @@ final class Server
 
     /**
      * @param Request $request
+     *
      * @throws \Throwable
      */
     private function validateRequestAgainstSchema(Request $request): void
     {
         $uri = self::buildUriFromString($request->getUri());
-        // TODO: This check should be removed: validation with rest/[store-code]/V1 should not be skipped!
-        if (!strpos($uri->getPath(), 'rest/all/V1')) {
+
+        // check if we have in our schema /rest/[store-code]/V1
+        // @TODO: maybe we need a better solution
+        $storeCode = explode("/", $uri->getPath());
+        $storeCode = $storeCode[2];
+
+        if (!isset($this->schema[$storeCode])) {
             return;
-        };
+        }
+
         $this->assertRequestHeadersMatch(
             $request->getHeaders(),
-            $this->schema,
+            $this->schema[$storeCode],
             $uri->getPath(),
             $request->getMethod()
         );
         $this->assertRequestQueryMatch(
             $uri->getAllQueryParameters(),
-            $this->schema,
+            $this->schema[$storeCode],
             $uri->getPath(),
             $request->getMethod()
         );
         if (in_array(strtoupper($request->getMethod()), ['PUT', 'POST'])) {
             $this->assertRequestBodyMatch(
                 self::readDecodedRequestBody($request),
-                $this->schema,
+                $this->schema[$storeCode],
                 $uri->getPath(),
                 $request->getMethod()
             );
@@ -166,29 +196,36 @@ final class Server
     }
 
     /**
-     * @param Request $request
+     * @param Request  $request
      * @param Response $response
+     *
      * @throws \Throwable
      */
     private function validateResponseAgainstSchema(Request $request, Response $response): void
     {
         $uri = self::buildUriFromString($request->getUri());
-        // TODO: This check should be removed: validation with rest/[store-code]/V1 should not be skipped!
-        if (!strpos($uri->getPath(), 'rest/all/V1')) {
+
+        // check if we have in our schema /rest/[store-code]/V1
+        // @TODO: maybe we need a better solution
+        $storeCode = explode("/", $uri->getPath());
+        $storeCode = $storeCode[2];
+
+        if (!isset($this->schema[$storeCode])) {
             return;
-        };
+        }
+
         $responseStatus = $response->getStatus();
-        $responseBody = Promise\wait($response->getBody()->read());
+        $responseBody   = Promise\wait($response->getBody()->read());
         $this->assertResponseHeadersMatch(
             $response->getHeaders(),
-            $this->schema,
+            $this->schema[$storeCode],
             $uri->getPath(),
             $request->getMethod(),
             $responseStatus
         );
         $this->assertResponseBodyMatch(
             json_decode($responseBody, false),
-            $this->schema,
+            $this->schema[$storeCode],
             $uri->getPath(),
             $request->getMethod(),
             $responseStatus

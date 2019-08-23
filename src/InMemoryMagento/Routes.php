@@ -91,15 +91,58 @@ class Routes extends RouteCollector
         $this->addRoute('POST', '/rest/all/V1/order/{orderId}/ship', [__CLASS__, 'postOrderShipHandler']);
     }
 
-    public static function putProductsForStoreViewHandler()
+    /**
+     * @param Request $request
+     * @param array   $uriParams
+     *
+     * @return ResponseStub
+     * @throws \Throwable
+     *
+     * BEFORE
+     * $product =
+     * [
+     *   'sku' => 'sku-123',
+     *   'price'   => 10,
+     *   '_stores' => [
+     *       'it_it' => [
+     *           'price' => 20
+     *       ]
+     *   ]
+     * ]
+     *
+     * AFTER
+     * $product =
+     * [
+     *   'sku' => 'sku-123',
+     *   'price'   => 50,    <- but is referred to it_it storeCode
+     *   '_stores' => [
+     *       'it_it' => [
+     *           'price' => 20
+     *       ]
+     *   ]
+     * ]
+     *
+     * Api call of magento doesn't have '_stores' value
+     */
+    public static function putProductsForStoreViewHandler(Request $request, array $uriParams): ResponseStub
     {
-        // TODO: To be implemented
-        return new ResponseStub(200, json_encode(['message' => 'Done nothing']));
+        $sku     = $uriParams['sku'];
+        $product = self::readDecodedRequestBody($request)->product;
+
+        // Product data updated can be found on "object" root
+        // We have to take that data
+        unset($product->_stores);
+        self::$products[$sku]->_stores->{$uriParams['storeCode']} = $product;
+
+        $response = new ResponseStub(200, json_encode(self::$products[$sku]));
+
+        return $response;
     }
 
     /**
      * @param Request $request
      * @param array $uriParams
+     *
      * @return ResponseStub
      * @throws \Throwable
      */
