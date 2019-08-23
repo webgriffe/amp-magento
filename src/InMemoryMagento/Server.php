@@ -139,6 +139,7 @@ final class Server
     private function validateRequestAgainstSchema(Request $request): void
     {
         $uri = self::buildUriFromString($request->getUri());
+        // TODO: This check should be removed: validation with rest/[store-code]/V1 should not be skipped!
         if (!strpos($uri->getPath(), 'rest/all/V1')) {
             return;
         };
@@ -172,6 +173,7 @@ final class Server
     private function validateResponseAgainstSchema(Request $request, Response $response): void
     {
         $uri = self::buildUriFromString($request->getUri());
+        // TODO: This check should be removed: validation with rest/[store-code]/V1 should not be skipped!
         if (!strpos($uri->getPath(), 'rest/all/V1')) {
             return;
         };
