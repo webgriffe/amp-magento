@@ -132,7 +132,7 @@ class Routes extends RouteCollector
         // Product data updated can be found on "object" root
         // We have to take that data
         unset($product->_stores);
-        if(empty(self::$products[$sku]->_stores)) {
+        if (empty(self::$products[$sku]->_stores)) {
             self::$products[$sku]->_stores = new \stdClass();
         }
         self::$products[$sku]->_stores->{$uriParams['storeCode']} = $product;
