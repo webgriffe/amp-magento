@@ -55,7 +55,8 @@ class Routes extends RouteCollector
         );
         $this->addRoute('GET', '/rest/all/V1/products/attributes', [__CLASS__, 'getProductsAttributesHandler']);
         $this->addRoute('GET', '/rest/all/V1/categories/list', [__CLASS__, 'getCategoriesListHandler']);
-        $this->addRoute('GET', '/rest/all/V1/products/{sku}', [__CLASS__, 'getProductsHandler']);
+        $this->addRoute('GET', '/rest/all/V1/products/{sku}', [__CLASS__, 'getProductHandler']);
+        $this->addRoute('GET', '/rest/all/V1/products', [__CLASS__, 'getProductsHandler']);
         $this->addRoute('POST', '/rest/all/V1/products', [__CLASS__, 'postProductsHandler']);
         $this->addRoute('PUT', '/rest/all/V1/products/{sku}', [__CLASS__, 'putProductsHandler']);
         $this->addRoute('PUT', '/rest/{storeCode}/V1/products/{sku}', [__CLASS__, 'putProductsForStoreViewHandler']);
@@ -154,7 +155,7 @@ class Routes extends RouteCollector
      * @param array $uriParams
      * @return ResponseStub
      */
-    public static function getProductsHandler(Request $request, array $uriParams): ResponseStub
+    public static function getProductHandler(Request $request, array $uriParams): ResponseStub
     {
         $sku = $uriParams['sku'];
         $response = new ResponseStub(404, json_encode(['message' => 'Product not found.']));
@@ -162,6 +163,19 @@ class Routes extends RouteCollector
             $response = new ResponseStub(200, json_encode(self::$products[$sku]));
         }
         return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @param array $uriParams
+     * @return ResponseStub
+     */
+    public static function getProductsHandler(Request $request, array $uriParams): ResponseStub
+    {
+        return self::createSearchCriteriaResponse(
+            self::$products,
+            self::buildUriFromString($request->getUri())->getQuery()
+        );
     }
 
     /**
