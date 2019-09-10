@@ -327,52 +327,7 @@ final class ApiClient
     public function getOrders(array $filters = []): Promise
     {
         return call(function () use ($filters) {
-            $uri = '/V1/orders';
-
-            //@todo: This logic should be fairly generic. Perhaps this can be used somewhere else? If so, extract it in
-            //a separate method
-            if (count($filters) == 0) {
-                //easy peasy
-                $uri .= '?searchCriteria=[]';
-            } else {
-                $groupIndex = 0;
-                foreach ($filters as $filterGroup) {
-                    if (array_key_exists('field', $filterGroup) &&
-                        array_key_exists('value', $filterGroup) &&
-                        array_key_exists('condition', $filterGroup)) {
-                        //Single element group. Make it a single element array for uniformity
-                        $filterGroup = [$filterGroup];
-                    }
-
-                    $filterIndex = 0;
-                    $filterGroupUrls = [];
-                    foreach ($filterGroup as $filter) {
-                        $value = $filter['value'];
-                        if (is_array($value)) {
-                            $value = implode(',', $value);
-                        }
-
-                        $filterGroupUrls[] = sprintf(
-                            "searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][field]=%s" .
-                            "&searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][value]=%s" .
-                            "&searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][conditionType]=%s",
-                            urlencode($filter['field']),
-                            urlencode($value),
-                            urlencode($filter['condition'])
-                        );
-                        ++$filterIndex;
-                    }
-                    $filterGroupUrl = implode('&', $filterGroupUrls);
-
-                    if ($groupIndex == 0) {
-                        $uri .= '?'.$filterGroupUrl;
-                    } else {
-                        $uri .= '&'.$filterGroupUrl;
-                    }
-
-                    ++$groupIndex;
-                }
-            }
+            $uri = '/V1/orders' . $this->buildQueryStringWithSearchCriteria($filters);
 
             $request = new Request($this->getAbsoluteUri($uri), 'GET');
             /** @var Response $response */
@@ -681,5 +636,56 @@ final class ApiClient
                 $data
             );
         }
+    }
+
+    /**
+     * @param array $filters
+     * @return string
+     */
+    private function buildQueryStringWithSearchCriteria(array $filters): string
+    {
+        $queryString = '';
+        if (count($filters) == 0) {
+            $queryString .= '?searchCriteria=[]';
+        } else {
+            $groupIndex = 0;
+            foreach ($filters as $filterGroup) {
+                if (array_key_exists('field', $filterGroup) &&
+                    array_key_exists('value', $filterGroup) &&
+                    array_key_exists('condition', $filterGroup)) {
+                    //Single element group. Make it a single element array for uniformity
+                    $filterGroup = [$filterGroup];
+                }
+
+                $filterIndex = 0;
+                $filterGroupUrls = [];
+                foreach ($filterGroup as $filter) {
+                    $value = $filter['value'];
+                    if (is_array($value)) {
+                        $value = implode(',', $value);
+                    }
+
+                    $filterGroupUrls[] = sprintf(
+                        "searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][field]=%s" .
+                        "&searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][value]=%s" .
+                        "&searchCriteria[filterGroups][{$groupIndex}][filters][{$filterIndex}][conditionType]=%s",
+                        urlencode($filter['field']),
+                        urlencode($value),
+                        urlencode($filter['condition'])
+                    );
+                    ++$filterIndex;
+                }
+                $filterGroupUrl = implode('&', $filterGroupUrls);
+
+                if ($groupIndex == 0) {
+                    $queryString .= '?'.$filterGroupUrl;
+                } else {
+                    $queryString .= '&'.$filterGroupUrl;
+                }
+
+                ++$groupIndex;
+            }
+        }
+        return $queryString;
     }
 }
