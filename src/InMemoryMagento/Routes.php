@@ -15,8 +15,8 @@ class Routes extends RouteCollector
 {
     use Utils;
 
-    const ADMIN_USER = 'admin';
-    const ADMIN_PASS = 'password123';
+    const ADMIN_USER                        = 'admin';
+    const ADMIN_PASS                        = 'password123';
     const DEFAULT_VISIBILITY_CATALOG_SEARCH = 4;
 
     /**
@@ -28,25 +28,25 @@ class Routes extends RouteCollector
      *
      * @var array
      */
-    public static $invoices = [];
-    public static $stockItems = [];
+    public static $invoices          = [];
+    public static $stockItems        = [];
     public static $productAttributes = [];
-    public static $shipmentTracks = [];
-    public static $orders = [];
-    public static $categories = [];
-    public static $products = [];
+    public static $shipmentTracks    = [];
+    public static $orders            = [];
+    public static $categories        = [];
+    public static $products          = [];
 
     public function __construct()
     {
         parent::__construct(new RouteParser\Std(), new DataGenerator\GroupCountBased());
 
         self::$productAttributes = [];
-        self::$categories = [];
-        self::$products = [];
-        self::$invoices = [];
-        self::$orders = [];
-        self::$stockItems = [];
-        self::$shipmentTracks = [];
+        self::$categories        = [];
+        self::$products          = [];
+        self::$invoices          = [];
+        self::$orders            = [];
+        self::$stockItems        = [];
+        self::$shipmentTracks    = [];
 
         $this->addRoute(
             'POST',
@@ -145,7 +145,7 @@ class Routes extends RouteCollector
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
      *
      * @return ResponseStub
      * @throws \Throwable
@@ -157,12 +157,14 @@ class Routes extends RouteCollector
             self::readDecodedRequestBody($request)->password === self::ADMIN_PASS) {
             $response = new ResponseStub(200, json_encode(uniqid('', true)));
         }
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws HttpException
      */
@@ -178,13 +180,21 @@ class Routes extends RouteCollector
         Request $request,
         array $uriParams
     ): ResponseStub {
-        // TODO: To be implemented
-        return self::getProductAttributesOptionsHandler($request, $uriParams);
+        $attributeCode = $uriParams['attributeCode'];
+        $storeCode     = $uriParams['storeCode'];
+        $response      = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
+
+        if (!empty(self::$productAttributes[$attributeCode]->_stores->{$storeCode})) {
+            $response = new ResponseStub(200, json_encode(self::$productAttributes[$attributeCode]->_stores->{$storeCode}->options));
+        }
+
+        return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws HttpException
      */
@@ -198,22 +208,25 @@ class Routes extends RouteCollector
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      */
     public static function getProductHandler(Request $request, array $uriParams): ResponseStub
     {
-        $sku = $uriParams['sku'];
+        $sku      = $uriParams['sku'];
         $response = new ResponseStub(404, json_encode(['message' => 'Product not found.']));
         if (isset(self::$products[$sku])) {
             $response = new ResponseStub(200, json_encode(self::$products[$sku]));
         }
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      */
     public static function getProductsHandler(Request $request, array $uriParams): ResponseStub
@@ -226,7 +239,8 @@ class Routes extends RouteCollector
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws \Throwable
      */
@@ -239,6 +253,7 @@ class Routes extends RouteCollector
                 400,
                 json_encode(['message' => 'The value of attribute "price" must be set.'])
             );
+
             return $response;
         }
         if (isset($product->weight) && !\is_numeric($product->weight)) {
@@ -246,6 +261,7 @@ class Routes extends RouteCollector
                 400,
                 json_encode(['message' => '"Error occurred during "weight" processing. Invalid type.'])
             );
+
             return $response;
         }
         if (!isset($product->visibility)) {
@@ -258,31 +274,35 @@ class Routes extends RouteCollector
                         400,
                         json_encode(['message' => 'Option values are not specified.'])
                     );
+
                     return $response;
                 }
             }
         }
-        $product->id = (string)random_int(1000, 10000);
+        $product->id                   = (string)random_int(1000, 10000);
         self::$products[$product->sku] = $product;
-        $response = new ResponseStub(200, json_encode($product));
+        $response                      = new ResponseStub(200, json_encode($product));
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws \Throwable
      */
     public static function putProductsHandler(Request $request, array $uriParams): ResponseStub
     {
-        $sku = $uriParams['sku'];
+        $sku     = $uriParams['sku'];
         $product = self::readDecodedRequestBody($request)->product;
         if (isset($product->weight) && !\is_numeric($product->weight)) {
             $response = new ResponseStub(
                 400,
                 json_encode(['message' => '"Error occurred during "weight" processing. Invalid type.'])
             );
+
             return $response;
         }
         if (!isset($product->visibility)) {
@@ -295,18 +315,21 @@ class Routes extends RouteCollector
                         400,
                         json_encode(['message' => 'Option values are not specified.'])
                     );
+
                     return $response;
                 }
             }
         }
         self::$products[$sku] = ObjectMerger::merge(self::$products[$sku], $product);
-        $response = new ResponseStub(200, json_encode(self::$products[$sku]));
+        $response             = new ResponseStub(200, json_encode(self::$products[$sku]));
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws \Throwable
      */
@@ -316,38 +339,42 @@ class Routes extends RouteCollector
         string $mageVersion
     ): ResponseStub {
         $attributeCode = $uriParams['attributeCode'];
-        $response = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
+        $response      = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
         if (!empty(self::$productAttributes[$attributeCode])) {
-            $option = self::readDecodedRequestBody($request)->option;
-            $option->value = (string)random_int(1000, 10000);
+            $option                                             = self::readDecodedRequestBody($request)->option;
+            $option->value                                      = (string)random_int(1000, 10000);
             self::$productAttributes[$attributeCode]->options[] = $option;
-            $responseBody = true;
+            $responseBody                                       = true;
             if ($mageVersion === '2.3') {
                 $responseBody = sprintf('id_%s', $option->value);
             }
             $response = new ResponseStub(200, json_encode($responseBody));
         }
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      */
     public static function getProductAttributesOptionsHandler(Request $request, array $uriParams): ResponseStub
     {
         $attributeCode = $uriParams['attributeCode'];
-        $response = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
+        $response      = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
         if (!empty(self::$productAttributes[$attributeCode])) {
             $response = new ResponseStub(200, json_encode(self::$productAttributes[$attributeCode]->options));
         }
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws \Throwable
      */
@@ -358,19 +385,21 @@ class Routes extends RouteCollector
             !array_key_exists(self::readDecodedRequestBody($request)->childSku, self::$products)) {
             return new ResponseStub(404, json_encode(['message' => 'Requested product doesn\'t exist']));
         }
-        $childId = self::$products[self::readDecodedRequestBody($request)->childSku]->id;
-        $parent = self::$products[$parentSku];
+        $childId                  = self::$products[self::readDecodedRequestBody($request)->childSku]->id;
+        $parent                   = self::$products[$parentSku];
         $configurableProductLinks = $parent->extension_attributes->configurable_product_links ?? null;
         if (!empty($configurableProductLinks) && \in_array($childId, $configurableProductLinks, true)) {
             return new ResponseStub(400, json_encode(['message' => 'Il prodotto è già stato associato']));
         }
         $parent->extension_attributes->configurable_product_links[] = $childId;
+
         return new ResponseStub(200, json_encode(true));
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws HttpException
      */
@@ -384,22 +413,25 @@ class Routes extends RouteCollector
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      */
     public static function getOrderHandler(Request $request, array $uriParams): ResponseStub
     {
-        $orderId = $uriParams['orderId'];
+        $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order not found.']));
         if (isset(self::$orders[$orderId])) {
             $response = new ResponseStub(200, json_encode(self::$orders[$orderId]));
         }
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws HttpException
      */
@@ -413,22 +445,25 @@ class Routes extends RouteCollector
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      */
     public static function getStockItemsHandler(Request $request, array $uriParams): ResponseStub
     {
-        $sku = $uriParams['sku'];
+        $sku      = $uriParams['sku'];
         $response = new ResponseStub(404, json_encode(['message' => 'Stock item not found.']));
         if (isset(self::$stockItems[$sku])) {
             $response = new ResponseStub(200, json_encode(self::$stockItems[$sku]));
         }
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws \Throwable
      */
@@ -441,30 +476,34 @@ class Routes extends RouteCollector
                 400,
                 json_encode(['message' => '"Error occurred during "qty" processing. Invalid type.'])
             );
+
             return $response;
         }
-        $stockItem = self::readDecodedRequestBody($request)->stockItem;
+        $stockItem              = self::readDecodedRequestBody($request)->stockItem;
         self::$stockItems[$sku] = ObjectMerger::merge(self::$stockItems[$sku], $stockItem);
-        $response = new ResponseStub(200, json_encode(self::$stockItems[$sku]->item_id));
+        $response               = new ResponseStub(200, json_encode(self::$stockItems[$sku]->item_id));
+
         return $response;
     }
 
     /**
      * @param Request $request
-     * @param array $uriParams
+     * @param array   $uriParams
+     *
      * @return ResponseStub
      * @throws \Throwable
      */
     public static function postOrderShipHandler(Request $request, array $uriParams): ResponseStub
     {
-        $orderId = $uriParams['orderId'];
+        $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
         if (array_key_exists($orderId, self::$orders)) {
             $orderItemsNumber = array_reduce(
                 self::$orders[$orderId]->items,
-                function ($counter, $item) {
+                function($counter, $item) {
                     $counter += $item->qty_ordered;
+
                     return $counter;
                 },
                 0
@@ -472,8 +511,9 @@ class Routes extends RouteCollector
 
             $shippedItemsNumber = array_reduce(
                 self::readDecodedRequestBody($request)->items,
-                function ($counter, $item) {
+                function($counter, $item) {
                     $counter += $item->qty;
+
                     return $counter;
                 },
                 0
@@ -482,11 +522,11 @@ class Routes extends RouteCollector
             if ($orderItemsNumber === $shippedItemsNumber) {
                 self::$orders[$orderId]->status = 'complete';
             }
-            $trackId = count(self::$shipmentTracks) + 1;
-            $newShipmentTrack = new \stdClass();
-            $newShipmentTrack->order_id = $orderId;
+            $trackId                        = count(self::$shipmentTracks) + 1;
+            $newShipmentTrack               = new \stdClass();
+            $newShipmentTrack->order_id     = $orderId;
             $newShipmentTrack->track_number = null;
-            $newShipmentTrack->comment = null;
+            $newShipmentTrack->comment      = null;
             if (!empty(self::readDecodedRequestBody($request)->tracks)) {
                 $newShipmentTrack->track_number = self::readDecodedRequestBody($request)->tracks[0]->track_number;
             }
@@ -494,8 +534,9 @@ class Routes extends RouteCollector
                 $newShipmentTrack->comment = self::readDecodedRequestBody($request)->comment->comment;
             }
             self::$shipmentTracks[$trackId] = $newShipmentTrack;
-            $response = new ResponseStub(200, json_encode($trackId));
+            $response                       = new ResponseStub(200, json_encode($trackId));
         }
+
         return $response;
     }
 }
