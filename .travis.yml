@@ -13,6 +13,7 @@ services:
 before_script:
   - composer validate
   - composer install
+  - composer global require maglnet/composer-require-checker && $HOME/.composer/vendor/bin/composer-require-checker
   - vendor/bin/phpcs
   - vendor/bin/phpstan analyse --no-progress -l 5 src tests
 

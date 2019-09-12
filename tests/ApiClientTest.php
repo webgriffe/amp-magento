@@ -68,6 +68,72 @@ class ApiClientTest extends TestCase
         $this->assertEquals(100, $product['extension_attributes']['stock_item']['qty']);
     }
 
+    public function testShouldGetProductsWithFilters()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple'
+            ]
+        );
+        Routes::$products['SKU-234'] = $this->object(
+            [
+                'sku' => 'SKU-234',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'configurable'
+            ]
+        );
+
+        $products = wait(
+            $this->client->getProducts([['field' => 'type_id', 'value' => 'configurable', 'condition' => 'eq']])
+        );
+
+        $this->assertCount(1, $products['items']);
+    }
+
+    public function testShouldGetProductsWithComplexFilters()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Good Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple'
+            ]
+        );
+        Routes::$products['SKU-234'] = $this->object(
+            [
+                'sku' => 'SKU-234',
+                'name' => 'Bad Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple'
+            ]
+        );
+
+        Routes::$products['SKU-345'] = $this->object(
+            [
+                'sku' => 'SKU-345',
+                'name' => 'Very Good Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'configurable'
+            ]
+        );
+
+        $products = wait(
+            $this->client->getProducts(
+                [
+                    ['field' => 'type_id', 'value' => 'simple', 'condition' => 'eq'],
+                    ['field' => 'name', 'value' => 'Good Product Name', 'condition' => 'like']
+                ]
+            )
+        );
+
+        $this->assertCount(1, $products['items']);
+    }
+
     public function testShouldCreateProduct()
     {
         $this->assertCount(0, Routes::$products);

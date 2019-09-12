@@ -65,7 +65,15 @@ trait Utils
                 $singleFilterData = array_filter($data, function (\stdClass $element) use ($filter) {
                     $field = $filter['field'];
                     $actualValue = $element->$field ?? null;
+
                     if (null === $actualValue) {
+                        if (property_exists($element, 'extension_attributes')) {
+                            $extensionAttributes = $element->extension_attributes;
+                            if (property_exists($extensionAttributes, $field)) {
+                                $actualValue = $extensionAttributes->{$field};
+                            }
+                        }
+
                         if (property_exists($element, 'custom_attributes') && $element->custom_attributes) {
                             $customAttributes = $element->custom_attributes;
                             $actualValue = array_reduce(
@@ -164,7 +172,12 @@ trait Utils
      */
     private static function readDecodedRequestBody(Request $request): \stdClass
     {
-        return json_decode(Promise\wait($request->getBody()->createBodyStream()->read()), false);
+        $requestBody = Promise\wait($request->getBody()->createBodyStream()->read());
+        if ($requestBody) {
+            return json_decode($requestBody, false);
+        } else {
+            return new \stdClass();
+        }
     }
 
     /**
