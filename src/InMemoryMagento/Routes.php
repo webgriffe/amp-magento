@@ -185,7 +185,10 @@ class Routes extends RouteCollector
         $response      = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
 
         if (!empty(self::$productAttributes[$attributeCode]->_stores->{$storeCode})) {
-            $response = new ResponseStub(200, json_encode(self::$productAttributes[$attributeCode]->_stores->{$storeCode}->options));
+            $response = new ResponseStub(
+                200,
+                json_encode(self::$productAttributes[$attributeCode]->_stores->{$storeCode}->options)
+            );
         }
 
         return $response;
@@ -501,7 +504,7 @@ class Routes extends RouteCollector
         if (array_key_exists($orderId, self::$orders)) {
             $orderItemsNumber = array_reduce(
                 self::$orders[$orderId]->items,
-                function($counter, $item) {
+                function ($counter, $item) {
                     $counter += $item->qty_ordered;
 
                     return $counter;
@@ -511,7 +514,7 @@ class Routes extends RouteCollector
 
             $shippedItemsNumber = array_reduce(
                 self::readDecodedRequestBody($request)->items,
-                function($counter, $item) {
+                function ($counter, $item) {
                     $counter += $item->qty;
 
                     return $counter;
