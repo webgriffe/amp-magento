@@ -133,6 +133,78 @@ final class ApiClient
     }
 
     /**
+     * @param string $sku
+     * @param string|null $storeCode
+     *
+     * @return Promise
+     */
+    public function getProductMediaGallery(string $sku, string $storeCode = null): Promise
+    {
+        return call(function () use ($sku, $storeCode) {
+            $request = new Request($this->getAbsoluteUri("/V1/products/{$sku}/media"), 'GET');
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
+    /**
+     * @param string $sku
+     * @param array $mediaData
+     * @param string|null $storeCode
+     *
+     * @return Promise
+     */
+    public function addProductMedia(string $sku, array $mediaData, string $storeCode = null): Promise
+    {
+        return call(function () use ($sku, $mediaData, $storeCode) {
+            $request = $this->createJsonRequest(
+                $this->getAbsoluteUri("/V1/products/{$sku}/media", $storeCode),
+                'POST',
+                $mediaData
+            );
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
+    /**
+     * @param string $sku
+     * @param string $mediaId
+     * @param array $mediaData
+     * @param string|null $storeCode
+     *
+     * @return Promise
+     */
+    public function updateProductMedia(string $sku, string $mediaId, array $mediaData, string $storeCode = null): Promise
+    {
+        return call(function () use ($sku, $mediaId, $mediaData, $storeCode) {
+            $request = $this->createJsonRequest(
+                $this->getAbsoluteUri("/V1/products/{$sku}/media/{$mediaId}", $storeCode),
+                'PUT',
+                $mediaData
+            );
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
+    /**
      * @return Promise
      * @throws \Amp\ByteStream\PendingReadError
      * @throws \TypeError
