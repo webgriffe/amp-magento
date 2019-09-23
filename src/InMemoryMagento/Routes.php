@@ -36,6 +36,8 @@ class Routes extends RouteCollector
     public static $categories        = [];
     public static $products          = [];
 
+    protected static $imagesIncrementalNumber = 0;
+
     public function __construct()
     {
         parent::__construct(new RouteParser\Std(), new DataGenerator\GroupCountBased());
@@ -93,6 +95,8 @@ class Routes extends RouteCollector
             [__CLASS__, 'putProductsStockItemsHandler']
         );
         $this->addRoute('POST', '/rest/all/V1/order/{orderId}/ship', [__CLASS__, 'postOrderShipHandler']);
+
+        self::$imagesIncrementalNumber = 0;
     }
 
     /**
@@ -181,8 +185,6 @@ class Routes extends RouteCollector
 
     private static function updateProductMediaGallery($sku, $newMedia, $entryId = null)
     {
-        static $increment = 0;
-
         if (isset($newMedia->id)) {
             unset($newMedia->id);
         }
@@ -202,7 +204,7 @@ class Routes extends RouteCollector
         }
 
         //Just a random file name
-        $newMedia->file = 'fakefile'.($increment++).'.jpg';
+        $newMedia->file = 'fakefile'.(self::$imagesIncrementalNumber++).'.jpg';
 
         $response = new ResponseStub(200, json_encode(true));
         if (!$entryId) {
