@@ -17,14 +17,11 @@ final class ObjectMerger
      */
     public static function merge(\stdClass $product1, \stdClass $product2): \stdClass
     {
-        $productArray1 = self::objectToArray($product1);
-        $productArray2 = self::objectToArray($product2);
-        $productArray1 = self::convertCustomAttributesToAssociativeArray($productArray1);
-        $productArray2 = self::convertCustomAttributesToAssociativeArray($productArray2);
-        $merge = array_replace_recursive($productArray1, $productArray2);
-        Assert::isArray($merge);
-        $merge = self::convertCustomAttributesFromAssociativeArray($merge);
-        return self::arrayToObject($merge);
+        $result = clone $product1;
+        foreach (array_keys(get_object_vars($product2)) as $fieldName) {
+            $result->{$fieldName} = $product2->{$fieldName};
+        }
+        return $result;
     }
 
     private static function objectToArray(\stdClass $object): array
