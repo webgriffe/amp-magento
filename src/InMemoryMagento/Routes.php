@@ -60,6 +60,9 @@ class Routes extends RouteCollector
         $this->addRoute('POST', '/rest/all/V1/products', [__CLASS__, 'postProductsHandler']);
         $this->addRoute('PUT', '/rest/all/V1/products/{sku}', [__CLASS__, 'putProductsHandler']);
         $this->addRoute('PUT', '/rest/{storeCode}/V1/products/{sku}', [__CLASS__, 'putProductsForStoreViewHandler']);
+        $this->addRoute('GET', '/rest/all/V1/products/{sku}/media', [__CLASS__, 'getProductMediasHandler']);
+        $this->addRoute('POST', '/rest/all/V1/products/{sku}/media', [__CLASS__, 'postProductMediaHandler']);
+        $this->addRoute('PUT', '/rest/all/V1/products/{sku}/media/{entryid}', [__CLASS__, 'putProductMediaHandler']);
         $this->addRoute(
             'POST',
             '/rest/all/V1/products/attributes/{attributeCode}/options',
@@ -139,6 +142,82 @@ class Routes extends RouteCollector
         self::$products[$sku]->_stores->{$uriParams['storeCode']} = $product;
 
         $response = new ResponseStub(200, json_encode(self::$products[$sku]));
+
+        return $response;
+    }
+
+    public static function getProductMediasHandler(Request $request, array $uriParams): ResponseStub
+    {
+        $sku = $uriParams['sku'];
+        if (!array_key_exists($sku, self::$products)) {
+            return new ResponseStub(404, json_encode(['message' => 'Product not found']));
+        }
+
+        $product = self::$products[$sku];
+        return new ResponseStub(200, json_encode($product->media_gallery_entries));
+    }
+
+    public static function postProductMediaHandler(Request $request, array $uriParams): ResponseStub
+    {
+        $sku = $uriParams['sku'];
+        if (!array_key_exists($sku, self::$products)) {
+            return new ResponseStub(404, json_encode(['message' => 'Product not found']));
+        }
+
+        $newMedia = self::readDecodedRequestBody($request)->entry;
+        return self::updateProductMediaGallery($sku, $newMedia);
+    }
+
+    public static function putProductMediaHandler(Request $request, array $uriParams): ResponseStub
+    {
+        $sku = $uriParams['sku'];
+        if (!array_key_exists($sku, self::$products)) {
+            return new ResponseStub(404, json_encode(['message' => 'Product not found']));
+        }
+
+        $newMedia = self::readDecodedRequestBody($request)->entry;
+        return self::updateProductMediaGallery($sku, $newMedia, $uriParams['entryid']);
+    }
+
+    private static function updateProductMediaGallery($sku, $newMedia, $entryId = null)
+    {
+        static $increment = 0;
+
+        if (isset($newMedia->id)) {
+            unset($newMedia->id);
+        }
+
+        if (isset($newMedia->file)) {
+            unset($newMedia->file);
+        }
+
+        if (isset($newMedia->content)) {
+            //Save these fields so that they can be checked by a test assertion later on
+            $newMedia->testData = [
+                'content' => base64_decode($newMedia->content->base64_encoded_data),
+                'type' => $newMedia->content->type,
+                'name' => $newMedia->content->name,
+            ];
+            unset($newMedia->content);
+        }
+
+        //Just a random file name
+        $newMedia->file = 'fakefile'.($increment++).'.jpg';
+
+        $response = new ResponseStub(200, json_encode(true));
+        if (!$entryId) {
+            if (count(self::$products[$sku]->media_gallery_entries) > 0) {
+                $entryId = max(array_keys(self::$products[$sku]->media_gallery_entries)) + 1;
+            } else {
+                $entryId = 1;
+            }
+            $response = new ResponseStub(200, json_encode($entryId));
+        } elseif (!array_key_exists($entryId, self::$products[$sku]->media_gallery_entries)) {
+            return new ResponseStub(404, json_encode(['message' => 'Media not found']));
+        }
+
+        $newMedia->id = $entryId;
+        self::$products[$sku]->media_gallery_entries[$entryId] = $newMedia;
 
         return $response;
     }
