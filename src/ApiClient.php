@@ -69,18 +69,18 @@ final class ApiClient
      * @param array $filters
      * @return Promise
      */
-    public function getProducts(array $filters = []): Promise
+    public function getProducts(array $filters = [], string $storeCode = null): Promise
     {
-        return call(function () use ($filters) {
+        // TODO: add a test with store code
+        return call(function () use ($filters, $storeCode) {
             $uri = '/V1/products' . $this->buildQueryStringWithSearchCriteria($filters);
 
-            $request = new Request($this->getAbsoluteUri($uri), 'GET');
+            $request = new Request($this->getAbsoluteUri($uri, $storeCode), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
                 return json_decode(yield $response->getBody(), true);
             }
-
             throw yield $this->unexpectedResponseException($request, $response);
         });
     }
