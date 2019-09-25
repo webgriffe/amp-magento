@@ -183,7 +183,7 @@ class Routes extends RouteCollector
         return self::updateProductMediaGallery($sku, $newMedia, $uriParams['entryid']);
     }
 
-    private static function updateProductMediaGallery($sku, $newMedia, $entryId = null)
+    private static function updateProductMediaGallery($sku, \stdClass $newMedia, $entryId = null)
     {
         if (isset($newMedia->id)) {
             unset($newMedia->id);
