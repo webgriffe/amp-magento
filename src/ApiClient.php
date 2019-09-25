@@ -186,8 +186,12 @@ final class ApiClient
      *
      * @return Promise
      */
-    public function updateProductMedia(string $sku, string $mediaId, array $mediaData, string $storeCode = null): Promise
-    {
+    public function updateProductMedia(
+        string $sku,
+        string $mediaId,
+        array $mediaData,
+        string $storeCode = null
+    ): Promise {
         return call(function () use ($sku, $mediaId, $mediaData, $storeCode) {
             $request = $this->createJsonRequest(
                 $this->getAbsoluteUri("/V1/products/{$sku}/media/{$mediaId}", $storeCode),
