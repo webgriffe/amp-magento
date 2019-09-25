@@ -44,6 +44,8 @@ class ObjectMergerTest extends TestCase
             )
         );
         $this->assertEquals('sku2', $merge->sku);
+        $this->assertTrue(is_array($merge->custom_attributes));
+        $this->assertCount(1, $merge->custom_attributes);
         $this->assertEquals('description', $merge->custom_attributes[0]->attribute_code);
         $this->assertEquals('', $merge->custom_attributes[0]->value);
     }
@@ -52,13 +54,26 @@ class ObjectMergerTest extends TestCase
     {
         $merge = ObjectMerger::merge(
             $this->object(
-                ['sku' => 'sku1', 'custom_attributes' => [['attribute_code' => 'description', 'value' => 'desc1']]]
+                [
+                    'sku' => 'sku1',
+                    'custom_attributes' => [
+                        ['attribute_code' => 'description', 'value' => 'desc1']
+                    ]
+                ]
             ),
             $this->object(
-                ['sku' => 'sku2', 'custom_attributes' => [['attribute_code' => 'other_attr', 'value' => 'other_value']]]
+                [
+                    'sku' => 'sku2',
+                    'custom_attributes' => [
+                        ['attribute_code' => 'other_attr', 'value' => 'other_value']
+                    ]
+                ]
             )
         );
+
         $this->assertEquals('sku2', $merge->sku);
+        $this->assertTrue(is_array($merge->custom_attributes));
+        $this->assertCount(2, $merge->custom_attributes);
         $this->assertEquals('description', $merge->custom_attributes[0]->attribute_code);
         $this->assertEquals('desc1', $merge->custom_attributes[0]->value);
         $this->assertEquals('other_attr', $merge->custom_attributes[1]->attribute_code);

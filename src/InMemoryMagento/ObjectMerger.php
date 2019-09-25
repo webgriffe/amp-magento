@@ -36,6 +36,23 @@ final class ObjectMerger
             }
         } elseif (is_array($elem2)) {
             foreach ($elem2 as $key => $value) {
+                //Special case for arrays of ['attribute_code' => 'xxx', 'value' => 'yyy'] elements
+                if (self::hasFieldOrKey($value, 'attribute_code')) {
+                    $attributeCode = self::getValue($value, 'attribute_code');
+
+                    if (is_array($result)) {
+                        foreach ($result as $key1 => $value1) {
+                            if (self::getValue($value1, 'attribute_code') == $attributeCode) {
+                                $result[$key1] = $value;
+                                continue 2;
+                            }
+                        }
+
+                        $result[] = $value;
+                        continue;
+                    }
+                }
+
                 self::mergeValue($result, $key, $value);
             }
         } else {
@@ -58,49 +75,35 @@ final class ObjectMerger
             if (array_key_exists($fieldName, $mergeInto)) {
                 $value = self::mergeGeneric($mergeInto[$fieldName], $value);
             }
-            $mergeInto[$fieldName] = $value;
+            if (is_numeric($fieldName)) {
+                $mergeInto[] = $value;
+            } else {
+                $mergeInto[$fieldName] = $value;
+            }
         } else {
             throw new \Exception("Cannot set a value into a field of a scalar value");
         }
     }
 
-    private static function objectToArray(\stdClass $object): array
+    private static function hasFieldOrKey($elem, $key)
     {
-        $encoded = json_encode($object);
-        Assert::string($encoded);
-        return json_decode($encoded, true);
+        if ($elem instanceof \stdClass) {
+            return isset($elem->{$key});
+        } elseif (is_array($elem)) {
+            return array_key_exists($key, $elem);
+        } else {
+            return false;
+        }
     }
 
-    private static function arrayToObject(array $array): \stdClass
+    private static function getValue($elem, $key)
     {
-        $encoded = json_encode($array);
-        Assert::string($encoded);
-        return json_decode($encoded, false);
-    }
-
-    private static function convertCustomAttributesToAssociativeArray(array $array): array
-    {
-        if (empty($array['custom_attributes'])) {
-            return $array;
+        if ($elem instanceof \stdClass) {
+            return $elem->{$key};
+        } elseif (is_array($elem)) {
+            return $elem[$key];
+        } else {
+            throw new \Exception("Can't access a field of a scalar value");
         }
-        $customAttributesAssociative = [];
-        foreach ($array['custom_attributes'] as $customAttribute) {
-            $customAttributesAssociative[$customAttribute['attribute_code']] = $customAttribute['value'];
-        }
-        $array['custom_attributes'] = $customAttributesAssociative;
-        return $array;
-    }
-
-    private static function convertCustomAttributesFromAssociativeArray(array $array): array
-    {
-        if (empty($array['custom_attributes'])) {
-            return $array;
-        }
-        $customAttributesNotAssociative = [];
-        foreach ($array['custom_attributes'] as $attributeCode => $attributeValue) {
-            $customAttributesNotAssociative[] = ['attribute_code' => $attributeCode, 'value' => $attributeValue];
-        }
-        $array['custom_attributes'] = $customAttributesNotAssociative;
-        return $array;
     }
 }
