@@ -300,8 +300,12 @@ class Routes extends RouteCollector
     {
         $sku      = $uriParams['sku'];
         $response = new ResponseStub(404, json_encode(['message' => 'Product not found.']));
-        if (isset(self::$products[$sku])) {
-            $response = new ResponseStub(200, json_encode(self::$products[$sku]));
+
+        //Sku search seems to be case insensitive in Magento
+        foreach (self::$products as $key => $product) {
+            if (strcasecmp($key, $sku) === 0) {
+                return new ResponseStub(200, json_encode($product));
+            }
         }
 
         return $response;
