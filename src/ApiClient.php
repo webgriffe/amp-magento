@@ -141,7 +141,13 @@ final class ApiClient
     public function getProductMediaGallery(string $sku, string $storeCode = null): Promise
     {
         return call(function () use ($sku, $storeCode) {
-            $request = new Request($this->getAbsoluteUri("/V1/products/{$sku}/media"), 'GET');
+            $request = new Request(
+                $this->getAbsoluteUri(
+                    "/V1/products/{$sku}/media",
+                    $storeCode
+                ),
+                'GET'
+            );
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
 
