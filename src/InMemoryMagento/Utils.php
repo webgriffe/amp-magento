@@ -113,8 +113,12 @@ trait Utils
                         case 'notnull':
                             return !is_null($actualValue);
                         case 'like':
-                            $regex = str_replace('%', '.*', '/'.preg_quote($filter['value'], '/').'/');
-                            return preg_match($regex, $actualValue);
+                            //Implement this using a regex. Regex-quote the value and replace all % chars with .*
+                            $regexQuotedValue = preg_quote($filter['value'], '/');
+                            $regexQuotedValue = str_replace('%', '.*', $regexQuotedValue);
+
+                            //The like operation is case insensitive, so the regex must be as well
+                            return preg_match("/{$regexQuotedValue}/i", $actualValue);
                         default:
                             throw new \Error(sprintf('Condition Type "%s" not supported', $filter['conditionType']));
                     }
