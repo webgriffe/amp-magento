@@ -221,6 +221,16 @@ class Routes extends RouteCollector
         $newMedia->id = $entryId;
         self::$products[$sku]->media_gallery_entries[$entryId] = $newMedia;
 
+        //Watch out for the flags (base image, small image, thumbnail etc.) When one of these flags is set to an image,
+        //it must be removed from all others
+        foreach (self::$products[$sku]->media_gallery_entries as $mediaId => $media) {
+            if ($mediaId == $entryId) {
+                continue;
+            }
+
+            self::$products[$sku]->media_gallery_entries[$mediaId]->types = array_diff($media->types, $newMedia->types);
+        }
+
         return $response;
     }
 
