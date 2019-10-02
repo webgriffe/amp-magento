@@ -562,12 +562,13 @@ final class ApiClient
     /**
      * @param string $uriPath
      * @param array $payload
+     * @param string $storeCode
      * @return Promise
      */
-    public function makePutRequest(string $uriPath, array $payload): Promise
+    public function makePutRequest(string $uriPath, array $payload, string $storeCode = null): Promise
     {
-        return call(function () use ($uriPath, $payload) {
-            $request = $this->createJsonRequest($this->getAbsoluteUri($uriPath), 'PUT', $payload);
+        return call(function () use ($uriPath, $payload, $storeCode) {
+            $request = $this->createJsonRequest($this->getAbsoluteUri($uriPath, $storeCode), 'PUT', $payload);
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
