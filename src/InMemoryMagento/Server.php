@@ -232,8 +232,8 @@ final class Server
     }
 
     /**
-     * @param $swaggerSchemaParams
-     * @return mixed
+     * @param array $swaggerSchemaParams
+     * @return string
      */
     private function getMageVersionFromAnyOfTheSchemas($swaggerSchemaParams)
     {
