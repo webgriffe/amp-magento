@@ -525,7 +525,7 @@ final class ApiClient
     public function shipOrder(int $orderId, array $shipmentData): Promise
     {
         //Just an alias with a more generic name
-        return call(function() use ($orderId, $shipmentData) {
+        return call(function () use ($orderId, $shipmentData) {
             yield $this->createShipmentTrack((string)$orderId, $shipmentData);
         });
     }
