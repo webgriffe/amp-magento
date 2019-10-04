@@ -502,6 +502,34 @@ final class ApiClient
         );
     }
 
+    public function invoiceOrder(int $orderId, array $invoiceData): Promise
+    {
+        return call(function () use ($orderId, $invoiceData) {
+            $request = $this->createJsonRequest(
+                $this->getAbsoluteUri(sprintf('/V1/order/%s/invoice', $orderId)),
+                'POST',
+                $invoiceData
+            );
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+            if ($response->getStatus() === 404) {
+                return false;
+            }
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
+    public function shipOrder(int $orderId, array $shipmentData): Promise
+    {
+        //Just an alias with a more generic name
+        return call(function() use ($orderId, $shipmentData) {
+            yield $this->createShipmentTrack((string)$orderId, $shipmentData);
+        });
+    }
+
     public function createShipmentTrack(string $orderId, array $trackingData): Promise
     {
         return call(function () use ($orderId, $trackingData) {
