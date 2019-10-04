@@ -21,7 +21,7 @@ final class Server
     /**
      * @var array
      */
-    private $schema = ['all'];
+    private $schema;
 
     /**
      * @var string
@@ -41,24 +41,19 @@ final class Server
      */
     public function __construct($swaggerSchemaParams, Routes $inMemoryMagentoRoutes)
     {
-        // @TODO: what version we have to take in case of multiple schema?
-        $mageVersion = null;
-
         if (!is_array($swaggerSchemaParams)) {
-            $swaggerSchema       = json_decode($swaggerSchemaParams, false);
-            $this->schema['all'] = new SchemaManager($swaggerSchema);
-            $mageVersion         = $swaggerSchema->info->version;
-        } else {
-            array_filter(
-                $swaggerSchemaParams,
-                function ($schema, $code) {
-                    $swaggerSchema       = json_decode($schema, false);
-                    $this->schema[$code] = new SchemaManager($swaggerSchema);
-                },
-                ARRAY_FILTER_USE_BOTH
-            );
+            $swaggerSchemaParams = ['all' => $swaggerSchemaParams];
         }
-        $this->mageVersion = $mageVersion;
+
+        array_walk(
+            $swaggerSchemaParams,
+            function ($schema, $code) {
+                $swaggerSchema = json_decode($schema, false);
+                $this->schema[$code] = new SchemaManager($swaggerSchema);
+            }
+        );
+
+        $this->mageVersion = $this->getMageVersionFromAnyOfTheSchemas($swaggerSchemaParams);
         $this->dispatcher  = new GroupCountBased($inMemoryMagentoRoutes->getData());
     }
 
@@ -234,5 +229,15 @@ final class Server
             $request->getMethod(),
             $responseStatus
         );
+    }
+
+    /**
+     * @param $swaggerSchemaParams
+     * @return mixed
+     */
+    private function getMageVersionFromAnyOfTheSchemas($swaggerSchemaParams)
+    {
+        $anySwaggerSchema = json_decode(array_values($swaggerSchemaParams)[0], false);
+        return $anySwaggerSchema->info->version;
     }
 }
