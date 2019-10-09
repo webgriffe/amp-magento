@@ -369,6 +369,11 @@ final class ApiClient
         });
     }
 
+    /**
+     * @param string|null $createdAfter
+     *
+     * @return Promise
+     */
     public function getInvoices(string $createdAfter = null): Promise
     {
         return call(function () use ($createdAfter) {
@@ -382,6 +387,30 @@ final class ApiClient
                     urlencode($createdAfter)
                 );
             }
+            $request = new Request($this->getAbsoluteUri($uri), 'GET');
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
+    /**
+     * TODO: Needs to be unified with getInvoices()
+     *
+     * @param array $filters
+     *
+     * @return Promise
+     *
+     * @see getOrders() for how to use $filters
+     */
+    public function getInvoicesWithFilter(array $filters)
+    {
+        return call(function () use ($filters) {
+            $uri = '/V1/invoices' . $this->buildQueryStringWithSearchCriteria($filters);
             $request = new Request($this->getAbsoluteUri($uri), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
@@ -528,6 +557,30 @@ final class ApiClient
         return call(function () use ($orderId, $shipmentData) {
             yield $this->createShipmentTrack((string)$orderId, $shipmentData);
         });
+    }
+
+    /**
+     * @param array $filters
+     *
+     * @return Promise
+     *
+     * @see getOrders() for how to use $filters
+     */
+    public function getShipments(array $filters)
+    {
+        return call(
+            function() use ($filters) {
+                $uri = '/V1/shipments'.$this->buildQueryStringWithSearchCriteria($filters);
+                $request = new Request($this->getAbsoluteUri($uri), 'GET');
+                /** @var Response $response */
+                $response = yield $this->makeApiRequest($request);
+                if ($response->getStatus() === 200) {
+                    return json_decode(yield $response->getBody(), true);
+                }
+
+                throw yield $this->unexpectedResponseException($request, $response);
+            }
+        );
     }
 
     public function createShipmentTrack(string $orderId, array $trackingData): Promise
