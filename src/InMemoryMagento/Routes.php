@@ -86,6 +86,7 @@ class Routes extends RouteCollector
             [__CLASS__, 'postConfigurableProductsChildHandler']
         );
         $this->addRoute('GET', '/rest/all/V1/invoices', [__CLASS__, 'getInvoicesHandler']);
+        $this->addRoute('GET', '/rest/all/V1/shipments', [__CLASS__, 'getShipmentsHandler']);
         $this->addRoute('GET', '/rest/all/V1/orders/{orderId}', [__CLASS__, 'getOrderHandler']);
         $this->addRoute('GET', '/rest/all/V1/orders', [__CLASS__, 'getOrdersHandler']);
         $this->addRoute('GET', '/rest/all/V1/stockItems/{sku}', [__CLASS__, 'getStockItemsHandler']);
@@ -95,6 +96,7 @@ class Routes extends RouteCollector
             [__CLASS__, 'putProductsStockItemsHandler']
         );
         $this->addRoute('POST', '/rest/all/V1/order/{orderId}/ship', [__CLASS__, 'postOrderShipHandler']);
+        $this->addRoute('POST', '/rest/all/V1/order/{orderId}/invoice', [__CLASS__, 'postOrderInvoiceHandler']);
 
         self::$imagesIncrementalNumber = 0;
     }
@@ -158,6 +160,7 @@ class Routes extends RouteCollector
         }
 
         $product = self::$products[$sku];
+
         return new ResponseStub(200, json_encode($product->media_gallery_entries));
     }
 
@@ -169,6 +172,7 @@ class Routes extends RouteCollector
         }
 
         $newMedia = self::readDecodedRequestBody($request)->entry;
+
         return self::updateProductMediaGallery($sku, $newMedia);
     }
 
@@ -180,6 +184,7 @@ class Routes extends RouteCollector
         }
 
         $newMedia = self::readDecodedRequestBody($request)->entry;
+
         return self::updateProductMediaGallery($sku, $newMedia, $uriParams['entryid']);
     }
 
@@ -197,8 +202,8 @@ class Routes extends RouteCollector
             //Save these fields so that they can be checked by a test assertion later on
             $newMedia->testData = [
                 'content' => base64_decode($newMedia->content->base64_encoded_data),
-                'type' => $newMedia->content->type,
-                'name' => $newMedia->content->name,
+                'type'    => $newMedia->content->type,
+                'name'    => $newMedia->content->name,
             ];
             unset($newMedia->content);
         }
@@ -218,7 +223,7 @@ class Routes extends RouteCollector
             return new ResponseStub(404, json_encode(['message' => 'Media not found']));
         }
 
-        $newMedia->id = $entryId;
+        $newMedia->id                                          = $entryId;
         self::$products[$sku]->media_gallery_entries[$entryId] = $newMedia;
 
         //Watch out for the flags (base image, small image, thumbnail etc.) When one of these flags is set to an image,
@@ -515,6 +520,20 @@ class Routes extends RouteCollector
      *
      * @return ResponseStub
      */
+    public static function getShipmentsHandler(Request $request, array $uriParams): ResponseStub
+    {
+        return self::createSearchCriteriaResponse(
+            self::$shipmentTracks,
+            self::buildUriFromString($request->getUri())->getQuery()
+        );
+    }
+
+    /**
+     * @param Request $request
+     * @param array   $uriParams
+     *
+     * @return ResponseStub
+     */
     public static function getOrderHandler(Request $request, array $uriParams): ResponseStub
     {
         $orderId  = $uriParams['orderId'];
@@ -633,6 +652,52 @@ class Routes extends RouteCollector
             }
             self::$shipmentTracks[$trackId] = $newShipmentTrack;
             $response                       = new ResponseStub(200, json_encode($trackId));
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @param array   $uriParams
+     *
+     * @return ResponseStub
+     * @throws \Throwable
+     */
+    public function postOrderInvoiceHandler(Request $request, array $uriParams): ResponseStub
+    {
+        $orderId  = $uriParams['orderId'];
+        $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
+
+        if (array_key_exists($orderId, self::$orders)) {
+            $orderItemsNumber = array_reduce(
+                self::$orders[$orderId]->items,
+                function ($counter, $item) {
+                    $counter += $item->qty_ordered;
+
+                    return $counter;
+                },
+                0
+            );
+
+            $invoicedItemsNumber = array_reduce(
+                self::readDecodedRequestBody($request)->items,
+                function ($counter, $item) {
+                    $counter += $item->qty;
+
+                    return $counter;
+                },
+                0
+            );
+
+            if ($orderItemsNumber === $invoicedItemsNumber) {
+                self::$orders[$orderId]->status = 'processing';
+            }
+            $invoiceId                  = count(self::$invoices) + 1;
+            $newInvoice                 = new \stdClass();
+            $newInvoice->order_id       = $orderId;
+            self::$invoices[$invoiceId] = $newInvoice;
+            $response                   = new ResponseStub(200, json_encode($invoiceId));
         }
 
         return $response;
