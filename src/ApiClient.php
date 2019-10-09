@@ -569,7 +569,7 @@ final class ApiClient
     public function getShipments(array $filters)
     {
         return call(
-            function() use ($filters) {
+            function () use ($filters) {
                 $uri = '/V1/shipments'.$this->buildQueryStringWithSearchCriteria($filters);
                 $request = new Request($this->getAbsoluteUri($uri), 'GET');
                 /** @var Response $response */
