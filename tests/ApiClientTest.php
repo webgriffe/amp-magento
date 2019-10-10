@@ -589,7 +589,7 @@ class ApiClientTest extends TestCase
 
     public function testShouldCreateShipmentTrackForACompleteShipment()
     {
-        $this->assertCount(0, Routes::$shipmentTracks);
+        $this->assertCount(0, Routes::$shipments);
 
         Routes::$orders = [
             '0000123' => $this->object(
@@ -611,16 +611,16 @@ class ApiClientTest extends TestCase
             )
         );
 
-        $this->assertCount(1, Routes::$shipmentTracks);
+        $this->assertCount(1, Routes::$shipments);
         $this->assertEquals(1, $trackId);
-        $this->assertEquals('0000123', Routes::$shipmentTracks[1]->order_id);
-        $this->assertEquals('My comment', Routes::$shipmentTracks[1]->comment);
-        $this->assertEquals('TRACK-123', Routes::$shipmentTracks[1]->track_number);
+        $this->assertEquals('0000123', Routes::$shipments[1]->order_id);
+        $this->assertEquals('My comment', Routes::$shipments[1]->comment);
+        $this->assertEquals('TRACK-123', Routes::$shipments[1]->tracks[0]->track_number);
     }
 
     public function testCreateShipmentTrackShouldCompleteOrderIfItsACompleteShipment()
     {
-        $this->assertCount(0, Routes::$shipmentTracks);
+        $this->assertCount(0, Routes::$shipments);
 
         Routes::$orders = [
             '0000123' => $this->object(
@@ -647,7 +647,7 @@ class ApiClientTest extends TestCase
 
     public function testCreateShipmentTrackShouldNotCompleteOrderIfItsAPartialShipment()
     {
-        $this->assertCount(0, Routes::$shipmentTracks);
+        $this->assertCount(0, Routes::$shipments);
 
         Routes::$orders = [
             '0000123' => $this->object(
