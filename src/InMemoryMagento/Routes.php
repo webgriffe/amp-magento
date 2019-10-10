@@ -31,7 +31,7 @@ class Routes extends RouteCollector
     public static $invoices          = [];
     public static $stockItems        = [];
     public static $productAttributes = [];
-    public static $shipmentTracks    = [];
+    public static $shipments         = [];
     public static $orders            = [];
     public static $categories        = [];
     public static $products          = [];
@@ -48,7 +48,7 @@ class Routes extends RouteCollector
         self::$invoices          = [];
         self::$orders            = [];
         self::$stockItems        = [];
-        self::$shipmentTracks    = [];
+        self::$shipments         = [];
 
         $this->addRoute(
             'POST',
@@ -523,7 +523,7 @@ class Routes extends RouteCollector
     public static function getShipmentsHandler(Request $request, array $uriParams): ResponseStub
     {
         return self::createSearchCriteriaResponse(
-            self::$shipmentTracks,
+            self::$shipments,
             self::buildUriFromString($request->getUri())->getQuery()
         );
     }
@@ -637,21 +637,32 @@ class Routes extends RouteCollector
             );
 
             if ($orderItemsNumber === $shippedItemsNumber) {
-                self::$orders[$orderId]->status = 'complete';
+                foreach (self::$invoices as $invoice) {
+                    if ($invoice->order_id == $orderId) {
+                        //Crude. Should actually check that the order is fully invoiced and shipped
+                        self::$orders[$orderId]->status = 'complete';
+                        break;
+                    }
+                }
             }
-            $trackId                        = count(self::$shipmentTracks) + 1;
-            $newShipmentTrack               = new \stdClass();
-            $newShipmentTrack->order_id     = $orderId;
-            $newShipmentTrack->track_number = null;
-            $newShipmentTrack->comment      = null;
-            if (!empty(self::readDecodedRequestBody($request)->tracks)) {
-                $newShipmentTrack->track_number = self::readDecodedRequestBody($request)->tracks[0]->track_number;
-            }
+
+            $newShipmentId                      = count(self::$shipments) + 1;
+            $newShipment                        = new \stdClass();
+            $newShipment->order_id              = $orderId;
+            $newShipment->comment               = null;
+            $newShipment->tracks                = [];
             if (!empty(self::readDecodedRequestBody($request)->comment)) {
-                $newShipmentTrack->comment = self::readDecodedRequestBody($request)->comment->comment;
+                $newShipment->comment = self::readDecodedRequestBody($request)->comment->comment;
             }
-            self::$shipmentTracks[$trackId] = $newShipmentTrack;
-            $response                       = new ResponseStub(200, json_encode($trackId));
+
+            if (!empty(self::readDecodedRequestBody($request)->tracks)) {
+                $newShipmentTrack = new \stdClass();
+                $newShipmentTrack->track_number = self::readDecodedRequestBody($request)->tracks[0]->track_number;
+                $newShipment->tracks[] = $newShipmentTrack;
+            }
+
+            self::$shipments[$newShipmentId]    = $newShipment;
+            $response                           = new ResponseStub(200, json_encode($newShipmentId));
         }
 
         return $response;
@@ -691,8 +702,15 @@ class Routes extends RouteCollector
             );
 
             if ($orderItemsNumber === $invoicedItemsNumber) {
-                self::$orders[$orderId]->status = 'processing';
+                foreach (self::$shipments as $shipment) {
+                    if ($shipment->order_id == $orderId) {
+                        //Crude. Should actually check that the order is fully invoiced and shipped
+                        self::$orders[$orderId]->status = 'complete';
+                        break;
+                    }
+                }
             }
+
             $invoiceId                  = count(self::$invoices) + 1;
             $newInvoice                 = new \stdClass();
             $newInvoice->order_id       = $orderId;
