@@ -618,7 +618,7 @@ class ApiClientTest extends TestCase
         $this->assertEquals('TRACK-123', Routes::$shipments[1]->tracks[0]->track_number);
     }
 
-    public function testCreateShipmentTrackShouldCompleteOrderIfItsACompleteShipment()
+    public function testCreateShipmentTrackShouldCompleteOrderIfItsACompleteShipmentAndOrderIsAlreadyInvoiced()
     {
         $this->assertCount(0, Routes::$shipments);
 
@@ -629,6 +629,14 @@ class ApiClientTest extends TestCase
                     'items' => [['qty_ordered' => 1]]
                 ]
             )
+        ];
+
+        Routes::$invoices = [
+            '100' => $this->object(
+                [
+                    'order_id' => '0000123',
+                ]
+            ),
         ];
 
         wait(
