@@ -626,15 +626,19 @@ class Routes extends RouteCollector
                 0
             );
 
-            $shippedItemsNumber = array_reduce(
-                self::readDecodedRequestBody($request)->items,
-                function ($counter, $item) {
-                    $counter += $item->qty;
-
-                    return $counter;
-                },
-                0
-            );
+            $decodedRequestBody = self::readDecodedRequestBody($request);
+            if ($decodedRequestBody && isset($decodedRequestBody->items) && is_array($decodedRequestBody->items)) {
+                $shippedItemsNumber = array_reduce(
+                    $decodedRequestBody->items,
+                    function ($counter, $item) {
+                        $counter += $item->qty;
+                        return $counter;
+                    },
+                    0
+                );
+            } else {
+                $shippedItemsNumber = $orderItemsNumber;
+            }
 
             if ($orderItemsNumber === $shippedItemsNumber) {
                 foreach (self::$invoices as $invoice) {
@@ -651,13 +655,13 @@ class Routes extends RouteCollector
             $newShipment->order_id              = $orderId;
             $newShipment->comment               = null;
             $newShipment->tracks                = [];
-            if (!empty(self::readDecodedRequestBody($request)->comment)) {
-                $newShipment->comment = self::readDecodedRequestBody($request)->comment->comment;
+            if (!empty($decodedRequestBody->comment)) {
+                $newShipment->comment = $decodedRequestBody->comment->comment;
             }
 
-            if (!empty(self::readDecodedRequestBody($request)->tracks)) {
+            if (!empty($decodedRequestBody->tracks)) {
                 $newShipmentTrack = new \stdClass();
-                $newShipmentTrack->track_number = self::readDecodedRequestBody($request)->tracks[0]->track_number;
+                $newShipmentTrack->track_number = $decodedRequestBody->tracks[0]->track_number;
                 $newShipment->tracks[] = $newShipmentTrack;
             }
 
@@ -691,15 +695,19 @@ class Routes extends RouteCollector
                 0
             );
 
-            $invoicedItemsNumber = array_reduce(
-                self::readDecodedRequestBody($request)->items,
-                function ($counter, $item) {
-                    $counter += $item->qty;
-
-                    return $counter;
-                },
-                0
-            );
+            $decodedRequestBody = self::readDecodedRequestBody($request);
+            if ($decodedRequestBody && isset($decodedRequestBody->items) && is_array($decodedRequestBody->items)) {
+                $invoicedItemsNumber = array_reduce(
+                    $decodedRequestBody->items,
+                    function ($counter, $item) {
+                        $counter += $item->qty;
+                        return $counter;
+                    },
+                    0
+                );
+            } else {
+                $invoicedItemsNumber = $orderItemsNumber;
+            }
 
             if ($orderItemsNumber === $invoicedItemsNumber) {
                 foreach (self::$shipments as $shipment) {
