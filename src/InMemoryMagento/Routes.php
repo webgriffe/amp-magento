@@ -97,6 +97,7 @@ class Routes extends RouteCollector
         );
         $this->addRoute('POST', '/rest/all/V1/order/{orderId}/ship', [__CLASS__, 'postOrderShipHandler']);
         $this->addRoute('POST', '/rest/all/V1/order/{orderId}/invoice', [__CLASS__, 'postOrderInvoiceHandler']);
+        $this->addRoute('POST', '/rest/all/V1/orders/{orderId}/cancel', [__CLASS__, 'postOrderCancelHandler']);
 
         self::$imagesIncrementalNumber = 0;
     }
@@ -616,31 +617,28 @@ class Routes extends RouteCollector
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
         if (array_key_exists($orderId, self::$orders)) {
-            $orderItemsNumber = array_reduce(
+            $totalQtyOrdered = array_reduce(
                 self::$orders[$orderId]->items,
                 function ($counter, $item) {
-                    $counter += $item->qty_ordered;
-
-                    return $counter;
+                    return $counter + $item->qty_ordered;
                 },
                 0
             );
 
             $decodedRequestBody = self::readDecodedRequestBody($request);
             if ($decodedRequestBody && isset($decodedRequestBody->items) && is_array($decodedRequestBody->items)) {
-                $shippedItemsNumber = array_reduce(
+                $totalQtyShipped = array_reduce(
                     $decodedRequestBody->items,
                     function ($counter, $item) {
-                        $counter += $item->qty;
-                        return $counter;
+                        return $counter + $item->qty;
                     },
                     0
                 );
             } else {
-                $shippedItemsNumber = $orderItemsNumber;
+                $totalQtyShipped = $totalQtyOrdered;
             }
 
-            if ($orderItemsNumber === $shippedItemsNumber) {
+            if ($totalQtyShipped === $totalQtyOrdered) {
                 foreach (self::$invoices as $invoice) {
                     if ($invoice->order_id == $orderId) {
                         //Crude. Should actually check that the order is fully invoiced and shipped
@@ -685,31 +683,28 @@ class Routes extends RouteCollector
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
         if (array_key_exists($orderId, self::$orders)) {
-            $orderItemsNumber = array_reduce(
+            $totalQtyOrdered = array_reduce(
                 self::$orders[$orderId]->items,
                 function ($counter, $item) {
-                    $counter += $item->qty_ordered;
-
-                    return $counter;
+                    return $counter + $item->qty_ordered;
                 },
                 0
             );
 
             $decodedRequestBody = self::readDecodedRequestBody($request);
             if ($decodedRequestBody && isset($decodedRequestBody->items) && is_array($decodedRequestBody->items)) {
-                $invoicedItemsNumber = array_reduce(
+                $totalQtyInvoiced = array_reduce(
                     $decodedRequestBody->items,
                     function ($counter, $item) {
-                        $counter += $item->qty;
-                        return $counter;
+                        return $counter + $item->qty;
                     },
                     0
                 );
             } else {
-                $invoicedItemsNumber = $orderItemsNumber;
+                $totalQtyInvoiced = $totalQtyOrdered;
             }
 
-            if ($orderItemsNumber === $invoicedItemsNumber) {
+            if ($totalQtyInvoiced === $totalQtyOrdered) {
                 foreach (self::$shipments as $shipment) {
                     if ($shipment->order_id == $orderId) {
                         //Crude. Should actually check that the order is fully invoiced and shipped
@@ -724,6 +719,44 @@ class Routes extends RouteCollector
             $newInvoice->order_id       = $orderId;
             self::$invoices[$invoiceId] = $newInvoice;
             $response                   = new ResponseStub(200, json_encode($invoiceId));
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param Request $request
+     * @param array   $uriParams
+     *
+     * @return ResponseStub
+     * @throws \Throwable
+     */
+    public function postOrderCancelHandler(Request $request, array $uriParams): ResponseStub
+    {
+        $orderId  = $uriParams['orderId'];
+        $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
+
+        if (array_key_exists($orderId, self::$orders)) {
+
+            $status = self::$orders[$orderId]->status;
+            if (!in_array($status, ['complete', 'closed', 'canceled'])) {
+                $status = 'canceled';
+                foreach (self::$shipments as $shipment) {
+                    if ($shipment->order_id == $orderId) {
+                        $status = 'complete';
+                    }
+                }
+
+                foreach (self::$invoices as $invoice) {
+                    if ($invoice->order_id == $orderId) {
+                        $status = 'complete';
+                    }
+                }
+
+                self::$orders[$orderId]->status = $status;
+            }
+
+            $response = new ResponseStub(200, json_encode($invoiceId));
         }
 
         return $response;
