@@ -559,6 +559,25 @@ final class ApiClient
         });
     }
 
+    public function cancelOrder(int $orderId): Promise
+    {
+        return call(function () use ($orderId) {
+            $request = $this->createJsonRequest(
+                $this->getAbsoluteUri(sprintf('/V1/orders/%s/cancel', $orderId)),
+                'POST'
+            );
+            /** @var Response $response */
+            $response = yield $this->makeApiRequest($request);
+            if ($response->getStatus() === 200) {
+                return json_decode(yield $response->getBody(), true);
+            }
+            if ($response->getStatus() === 404) {
+                return false;
+            }
+            throw yield $this->unexpectedResponseException($request, $response);
+        });
+    }
+
     /**
      * @param array $filters
      *
