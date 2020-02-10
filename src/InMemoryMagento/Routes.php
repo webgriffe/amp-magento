@@ -618,7 +618,12 @@ class Routes extends RouteCollector
 
         if (array_key_exists($orderId, self::$orders)) {
             $totalQtyOrdered = array_reduce(
-                self::$orders[$orderId]->items,
+                array_filter(
+                    self::$orders[$orderId]->items,
+                    function ($item) {
+                        return !isset($item->parent_item_id) || empty($item->parent_item_id);
+                    }
+                ),
                 function ($counter, $item) {
                     return $counter + $item->qty_ordered;
                 },
@@ -684,7 +689,12 @@ class Routes extends RouteCollector
 
         if (array_key_exists($orderId, self::$orders)) {
             $totalQtyOrdered = array_reduce(
-                self::$orders[$orderId]->items,
+                array_filter(
+                    self::$orders[$orderId]->items,
+                    function ($item) {
+                        return !isset($item->parent_item_id) || empty($item->parent_item_id);
+                    }
+                ),
                 function ($counter, $item) {
                     return $counter + $item->qty_ordered;
                 },
