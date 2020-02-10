@@ -617,33 +617,37 @@ class Routes extends RouteCollector
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
         if (array_key_exists($orderId, self::$orders)) {
-            $totalQtyOrdered = array_reduce(
-                array_filter(
-                    self::$orders[$orderId]->items,
-                    function ($item) {
-                        return !isset($item->parent_item_id) || empty($item->parent_item_id);
-                    }
-                ),
-                function ($counter, $item) {
-                    return $counter + $item->qty_ordered;
-                },
-                0
-            );
-
+            $orderIsFullyShipped = true;
             $decodedRequestBody = self::readDecodedRequestBody($request);
-            if ($decodedRequestBody && isset($decodedRequestBody->items) && is_array($decodedRequestBody->items)) {
-                $totalQtyShipped = array_reduce(
-                    $decodedRequestBody->items,
-                    function ($counter, $item) {
-                        return $counter + $item->qty;
-                    },
-                    0
-                );
-            } else {
-                $totalQtyShipped = $totalQtyOrdered;
+            foreach (self::$orders[$orderId]->items as &$orderItem) {
+                $qtyToShip = $orderItem->qty_ordered;
+                if (isset($orderItem->qty_canceled)) {
+                    $qtyToShip -= $orderItem->qty_canceled;
+                }
+                if (isset($orderItem->qty_shipped)) {
+                    $qtyToShip -= $orderItem->qty_shipped;
+                }
+
+                foreach ($decodedRequestBody->items as $requestItem) {
+                    if ($requestItem->order_item_id == $orderItem->item_id ||
+                        (isset($orderItem->parent_item_id) && $requestItem->order_item_id == $orderItem->parent_item_id)) {
+                        if ($requestItem->qty < $qtyToShip) {
+                            $orderIsFullyShipped = false;
+                        }
+                        $qtyToShip = $requestItem->qty;
+                        break;
+                    }
+                }
+
+                $qtyShipped = $qtyToShip;
+                if (isset($orderItem->qty_shipped)) {
+                    $qtyShipped += $orderItem->qty_shipped;
+                }
+
+                $orderItem->qty_shipped = $qtyShipped;
             }
 
-            if ($totalQtyShipped === $totalQtyOrdered) {
+            if ($orderIsFullyShipped) {
                 foreach (self::$invoices as $invoice) {
                     if ($invoice->order_id == $orderId) {
                         //Crude. Should actually check that the order is fully invoiced and shipped
@@ -688,33 +692,37 @@ class Routes extends RouteCollector
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
         if (array_key_exists($orderId, self::$orders)) {
-            $totalQtyOrdered = array_reduce(
-                array_filter(
-                    self::$orders[$orderId]->items,
-                    function ($item) {
-                        return !isset($item->parent_item_id) || empty($item->parent_item_id);
-                    }
-                ),
-                function ($counter, $item) {
-                    return $counter + $item->qty_ordered;
-                },
-                0
-            );
-
+            $orderIsFullyInvoiced = true;
             $decodedRequestBody = self::readDecodedRequestBody($request);
-            if ($decodedRequestBody && isset($decodedRequestBody->items) && is_array($decodedRequestBody->items)) {
-                $totalQtyInvoiced = array_reduce(
-                    $decodedRequestBody->items,
-                    function ($counter, $item) {
-                        return $counter + $item->qty;
-                    },
-                    0
-                );
-            } else {
-                $totalQtyInvoiced = $totalQtyOrdered;
+            foreach (self::$orders[$orderId]->items as &$orderItem) {
+                $qtyToInvoice = $orderItem->qty_ordered;
+                if (isset($orderItem->qty_canceled)) {
+                    $qtyToInvoice -= $orderItem->qty_canceled;
+                }
+                if (isset($orderItem->qty_invoiced)) {
+                    $qtyToInvoice -= $orderItem->qty_invoiced;
+                }
+
+                foreach ($decodedRequestBody->items as $requestItem) {
+                    if ($requestItem->order_item_id == $orderItem->item_id ||
+                        (isset($orderItem->parent_item_id) && $requestItem->order_item_id == $orderItem->parent_item_id)) {
+                        if ($requestItem->qty < $qtyToInvoice) {
+                            $orderIsFullyInvoiced = false;
+                        }
+                        $qtyToInvoice = $requestItem->qty;
+                        break;
+                    }
+                }
+
+                $qtyInvoiced = $qtyToInvoice;
+                if (isset($orderItem->qty_invoiced)) {
+                    $qtyInvoiced += $orderItem->qty_invoiced;
+                }
+
+                $orderItem->qty_invoiced = $qtyInvoiced;
             }
 
-            if ($totalQtyInvoiced === $totalQtyOrdered) {
+            if ($orderIsFullyInvoiced) {
                 foreach (self::$shipments as $shipment) {
                     if ($shipment->order_id == $orderId) {
                         //Crude. Should actually check that the order is fully invoiced and shipped
@@ -764,9 +772,25 @@ class Routes extends RouteCollector
                 }
 
                 self::$orders[$orderId]->status = $status;
+
+                if (self::$orders[$orderId]->items) {
+                    foreach (self::$orders[$orderId]->items as &$item) {
+                        if (isset($item->qty_ordered)) {
+                            $qtyOrdered = $item->qty_ordered;
+                            $qtyActuallyUsed = 0;
+                            if (isset($item->qty_shipped)) {
+                                $qtyActuallyUsed = max($qtyActuallyUsed, $item->qty_shipped);
+                            }
+                            if (isset($item->qty_invoiced)) {
+                                $qtyActuallyUsed = max($qtyActuallyUsed, $item->qty_invoiced);
+                            }
+                            $item->qty_canceled = $qtyOrdered - $qtyActuallyUsed;
+                        }
+                    }
+                }
             }
 
-            $response = new ResponseStub(200, json_encode($invoiceId));
+            $response = new ResponseStub(200, json_encode(true));
         }
 
         return $response;
