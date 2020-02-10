@@ -93,9 +93,9 @@ trait Utils
 
                     switch ($filter['conditionType']) {
                         case 'eq':
-                            return $actualValue === $filter['value'];
+                            return $actualValue == $filter['value'];
                         case 'neq':
-                            return $actualValue !== $filter['value'];
+                            return $actualValue != $filter['value'];
                         case 'gt':
                             return $actualValue > $filter['value'];
                         case 'gteq':
