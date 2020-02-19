@@ -686,7 +686,7 @@ class Routes extends RouteCollector
      * @return ResponseStub
      * @throws \Throwable
      */
-    public function postOrderInvoiceHandler(Request $request, array $uriParams): ResponseStub
+    public static function postOrderInvoiceHandler(Request $request, array $uriParams): ResponseStub
     {
         $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
@@ -749,7 +749,7 @@ class Routes extends RouteCollector
      * @return ResponseStub
      * @throws \Throwable
      */
-    public function postOrderCancelHandler(Request $request, array $uriParams): ResponseStub
+    public static function postOrderCancelHandler(Request $request, array $uriParams): ResponseStub
     {
         $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
