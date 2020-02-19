@@ -595,7 +595,12 @@ class ApiClientTest extends TestCase
             '0000123' => $this->object(
                 [
                     'status' => 'processing',
-                    'items' => [['qty_ordered' => 1]]
+                    'items' => [
+                        [
+                            'item_id' => 123,
+                            'qty_ordered' => 1
+                        ]
+                    ]
                 ]
             )
         ];
@@ -604,7 +609,12 @@ class ApiClientTest extends TestCase
             $this->client->createShipmentTrack(
                 '0000123',
                 [
-                    'items' => [['qty' => 1]],
+                    'items' => [
+                        [
+                            'order_item_id' => 123,
+                            'qty' => 1
+                        ]
+                    ],
                     'tracks' => [['track_number' => 'TRACK-123']],
                     'comment' => ['comment' => 'My comment']
                 ]
@@ -626,7 +636,12 @@ class ApiClientTest extends TestCase
             '0000123' => $this->object(
                 [
                     'status' => 'processing',
-                    'items' => [['qty_ordered' => 1]]
+                    'items' => [
+                        [
+                            'item_id' => 123,
+                            'qty_ordered' => 1
+                        ]
+                    ]
                 ]
             )
         ];
@@ -643,7 +658,12 @@ class ApiClientTest extends TestCase
             $this->client->createShipmentTrack(
                 '0000123',
                 [
-                    'items' => [['qty' => 1]],
+                    'items' => [
+                        [
+                            'order_item_id' => 123,
+                            'qty' => 1
+                        ]
+                    ],
                     'tracks' => [['track_number' => 'TRACK-123']],
                     'comment' => ['comment' => 'My comment']
                 ]
@@ -661,7 +681,16 @@ class ApiClientTest extends TestCase
             '0000123' => $this->object(
                 [
                     'status' => 'processing',
-                    'items' => [['qty_ordered' => 1], ['qty_ordered' => 1]]
+                    'items' => [
+                        [
+                            'item_id' => 123,
+                            'qty_ordered' => 1
+                        ],
+                        [
+                            'item_id' => 234,
+                            'qty_ordered' => 1
+                        ]
+                    ]
                 ]
             )
         ];
@@ -670,7 +699,12 @@ class ApiClientTest extends TestCase
             $this->client->createShipmentTrack(
                 '0000123',
                 [
-                    'items' => [['qty' => 1]],
+                    'items' => [
+                        [
+                            'order_item_id' => 123,
+                            'qty' => 1
+                        ]
+                    ],
                     'tracks' => [['track_number' => 'TRACK-123']],
                     'comment' => ['comment' => 'My comment']
                 ]
