@@ -630,7 +630,10 @@ class Routes extends RouteCollector
 
                 foreach ($decodedRequestBody->items as $requestItem) {
                     if ($requestItem->order_item_id == $orderItem->item_id ||
-                        (isset($orderItem->parent_item_id) && $requestItem->order_item_id == $orderItem->parent_item_id)) {
+                        (
+                            isset($orderItem->parent_item_id) &&
+                            $requestItem->order_item_id == $orderItem->parent_item_id)
+                    ) {
                         if ($requestItem->qty < $qtyToShip) {
                             $orderIsFullyShipped = false;
                         }
@@ -705,7 +708,10 @@ class Routes extends RouteCollector
 
                 foreach ($decodedRequestBody->items as $requestItem) {
                     if ($requestItem->order_item_id == $orderItem->item_id ||
-                        (isset($orderItem->parent_item_id) && $requestItem->order_item_id == $orderItem->parent_item_id)) {
+                        (
+                            isset($orderItem->parent_item_id) &&
+                            $requestItem->order_item_id == $orderItem->parent_item_id)
+                    ) {
                         if ($requestItem->qty < $qtyToInvoice) {
                             $orderIsFullyInvoiced = false;
                         }
@@ -755,7 +761,6 @@ class Routes extends RouteCollector
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
         if (array_key_exists($orderId, self::$orders)) {
-
             $status = self::$orders[$orderId]->status;
             if (!in_array($status, ['complete', 'closed', 'canceled'])) {
                 $status = 'canceled';
