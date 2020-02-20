@@ -779,6 +779,7 @@ class Routes extends RouteCollector
                 self::$orders[$orderId]->status = $status;
 
                 if (self::$orders[$orderId]->items) {
+                    /** @var \stdClass $item */
                     foreach (self::$orders[$orderId]->items as &$item) {
                         if (isset($item->qty_ordered)) {
                             $qtyOrdered = $item->qty_ordered;

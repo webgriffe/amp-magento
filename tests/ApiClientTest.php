@@ -598,7 +598,8 @@ class ApiClientTest extends TestCase
                     'items' => [
                         [
                             'item_id' => 123,
-                            'qty_ordered' => 1
+                            'qty_ordered' => 1,
+                            'qty_canceled' => 0,
                         ]
                     ]
                 ]
@@ -639,7 +640,8 @@ class ApiClientTest extends TestCase
                     'items' => [
                         [
                             'item_id' => 123,
-                            'qty_ordered' => 1
+                            'qty_ordered' => 1,
+                            'qty_canceled' => 0,
                         ]
                     ]
                 ]
@@ -684,11 +686,13 @@ class ApiClientTest extends TestCase
                     'items' => [
                         [
                             'item_id' => 123,
-                            'qty_ordered' => 1
+                            'qty_ordered' => 1,
+                            'qty_canceled' => 0,
                         ],
                         [
                             'item_id' => 234,
-                            'qty_ordered' => 1
+                            'qty_ordered' => 1,
+                            'qty_canceled' => 0,
                         ]
                     ]
                 ]
