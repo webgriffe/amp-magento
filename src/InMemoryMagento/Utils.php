@@ -76,7 +76,7 @@ trait Utils
                                     if ($genericAttributeData->attribute_code == $storeAttributeData->attribute_code) {
                                         //Replace the existing item
                                         $newElement->{$field}[$attributeIndex] = $newAttribute;
-                                        break 2;
+                                        continue 2;
                                     }
                                 }
 
@@ -131,6 +131,7 @@ trait Utils
                                     if ($customAttribute->attribute_code === $field) {
                                         return $customAttribute->value;
                                     }
+                                    return $carry;
                                 }
                             );
                         }
@@ -167,7 +168,7 @@ trait Utils
                             $regexQuotedValue = str_replace('%', '.*', $regexQuotedValue);
 
                             //The like operation is case insensitive, so the regex must be as well
-                            return preg_match("/{$regexQuotedValue}/i", $actualValue);
+                            return !is_null($actualValue) && preg_match("/{$regexQuotedValue}/i", $actualValue);
                         default:
                             throw new \Error(sprintf('Condition Type "%s" not supported', $filter['conditionType']));
                     }
