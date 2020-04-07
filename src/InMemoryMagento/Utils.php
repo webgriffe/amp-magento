@@ -35,14 +35,63 @@ trait Utils
     /**
      * @param array $data
      * @param string $query
+     * @param string|null $storeCode
+     *
      * @return ResponseStub
      */
-    private static function createSearchCriteriaResponse(array $data, string $query): ResponseStub
+    private static function createSearchCriteriaResponse(array $data, string $query, string $storeCode = null): ResponseStub
     {
         $parsedQuery = [];
         parse_str($query, $parsedQuery);
         if (!array_key_exists('searchCriteria', $parsedQuery)) {
             throw new \Error('Parameter searchCriteria is required');
+        }
+
+        if ($storeCode) {
+            //When requesting data for a specific store view, replace the generic values with the specific values for
+            //that store
+            foreach ($data as $index => $element) {
+                if (isset($element->_stores->{$storeCode})) {
+                    $storeValues = $element->_stores->{$storeCode};
+
+                    //We don't want to modify the original object, so clone it and ensure to do a deep copy of all its
+                    //components too
+                    $newElement = clone $element;
+                    unset($newElement->_stores);
+
+                    foreach ($storeValues as $field => $value) {
+                        if ($field == 'custom_attributes' || $field == 'extension_attributes') {
+                            //Merge the lists of attributes, giving precedence to the values that are specific to the
+                            //store view
+                            if (!isset($newElement->{$field})) {
+                                $newElement->{$field} = [];
+                            }
+
+                            foreach ($storeValues->{$field} as $storeAttributeData) {
+                                $newAttribute = new \stdClass();
+                                $newAttribute->attribute_code = $storeAttributeData->attribute_code;
+                                $newAttribute->value = $storeAttributeData->value;
+
+                                foreach ($newElement->{$field} as $attributeIndex => $genericAttributeData) {
+                                    if ($genericAttributeData->attribute_code == $storeAttributeData->attribute_code) {
+                                        //Replace the existing item
+                                        $newElement->{$field}[$attributeIndex] = $newAttribute;
+                                        break 2;
+                                    }
+                                }
+
+                                //Add a new item
+                                $newElement->{$field}[] = $newAttribute;
+                            }
+                        } else {
+                            //Simple value. Just replace it
+                            $newElement->{$field} = $value;
+                        }
+                    }
+
+                    $data[$index] = $newElement;
+                }
+            }
         }
 
         if (empty($parsedQuery['searchCriteria']) || empty($parsedQuery['searchCriteria']['filterGroups'])) {
@@ -64,7 +113,7 @@ trait Utils
                 //Filters are in OR between each other
                 $singleFilterData = array_filter($data, function (\stdClass $element) use ($filter) {
                     $field = $filter['field'];
-                    $actualValue = $element->$field ?? null;
+                    $actualValue = $element->{$field} ?? null;
 
                     if (null === $actualValue) {
                         if (property_exists($element, 'extension_attributes')) {

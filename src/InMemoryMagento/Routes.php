@@ -59,6 +59,7 @@ class Routes extends RouteCollector
         $this->addRoute('GET', '/rest/all/V1/categories/list', [__CLASS__, 'getCategoriesListHandler']);
         $this->addRoute('GET', '/rest/all/V1/products/{sku}', [__CLASS__, 'getProductHandler']);
         $this->addRoute('GET', '/rest/all/V1/products', [__CLASS__, 'getProductsHandler']);
+        $this->addRoute('GET', '/rest/{storeCode}/V1/products', [__CLASS__, 'getProductsForStoreHandler']);
         $this->addRoute('POST', '/rest/all/V1/products', [__CLASS__, 'postProductsHandler']);
         $this->addRoute('PUT', '/rest/all/V1/products/{sku}', [__CLASS__, 'putProductsHandler']);
         $this->addRoute('PUT', '/rest/{storeCode}/V1/products/{sku}', [__CLASS__, 'putProductsForStoreViewHandler']);
@@ -338,6 +339,21 @@ class Routes extends RouteCollector
         return self::createSearchCriteriaResponse(
             self::$products,
             self::buildUriFromString($request->getUri())->getQuery()
+        );
+    }
+
+    /**
+     * @param Request $request
+     * @param array   $uriParams
+     *
+     * @return ResponseStub
+     */
+    public static function getProductsForStoreHandler(Request $request, array $uriParams): ResponseStub
+    {
+        return self::createSearchCriteriaResponse(
+            self::$products,
+            self::buildUriFromString($request->getUri())->getQuery(),
+            $uriParams['storeCode']
         );
     }
 
