@@ -399,6 +399,33 @@ class Routes extends RouteCollector
                 }
             }
         }
+
+        if (isset($product->custom_attributes)) {
+            foreach ($product->custom_attributes as $customAttribute) {
+                if ($customAttribute->attribute_code == 'url_key') {
+                    //Check for duplicated url keys
+                    foreach (self::$products as $otherProduct) {
+                        if (isset($otherProduct->custom_attributes)) {
+                            foreach ($otherProduct->custom_attributes as $otherProductCustomAttribute) {
+                                if ($otherProductCustomAttribute->attribute_code == 'url_key') {
+                                    if ($otherProductCustomAttribute->value == $customAttribute->value) {
+                                        $response = new ResponseStub(
+                                            400,
+                                            json_encode(['message' => 'URL key for specified store already exists'])
+                                        );
+
+                                        return $response;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         $product->id                   = (string)random_int(1000, 10000);
         self::$products[$product->sku] = $product;
         $response                      = new ResponseStub(200, json_encode($product));
@@ -440,6 +467,37 @@ class Routes extends RouteCollector
                 }
             }
         }
+
+        if (isset($product->custom_attributes)) {
+            foreach ($product->custom_attributes as $customAttribute) {
+                if ($customAttribute->attribute_code == 'url_key') {
+                    //Check for duplicated url keys
+                    foreach (self::$products as $otherProduct) {
+                        if ($otherProduct->sku == $sku) {
+                            continue;
+                        }
+
+                        if (isset($otherProduct->custom_attributes)) {
+                            foreach ($otherProduct->custom_attributes as $otherProductCustomAttribute) {
+                                if ($otherProductCustomAttribute->attribute_code == 'url_key') {
+                                    if ($otherProductCustomAttribute->value == $customAttribute->value) {
+                                        $response = new ResponseStub(
+                                            400,
+                                            json_encode(['message' => 'URL key for specified store already exists'])
+                                        );
+
+                                        return $response;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         self::$products[$sku] = ObjectMerger::merge(self::$products[$sku], $product);
         $response             = new ResponseStub(200, json_encode(self::$products[$sku]));
 
