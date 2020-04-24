@@ -39,8 +39,11 @@ trait Utils
      *
      * @return ResponseStub
      */
-    private static function createSearchCriteriaResponse(array $data, string $query, string $storeCode = null): ResponseStub
-    {
+    private static function createSearchCriteriaResponse(
+        array $data,
+        string $query,
+        string $storeCode = null
+    ): ResponseStub {
         $parsedQuery = [];
         parse_str($query, $parsedQuery);
         if (!array_key_exists('searchCriteria', $parsedQuery)) {
