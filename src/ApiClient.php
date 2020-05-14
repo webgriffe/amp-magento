@@ -15,10 +15,12 @@ use Webmozart\Assert\Assert;
 final class ApiClient
 {
     const DEFAULT_CLIENT_TIMEOUT = 30000;
+
     /**
      * @var HttpClient
      */
     private $client;
+    
     /**
      * @var array
      */
@@ -51,7 +53,7 @@ final class ApiClient
     public function getProduct(string $sku): Promise
     {
         return call(function () use ($sku) {
-            $request = new Request($this->getAbsoluteUri('/V1/products/' . $sku), 'GET');
+            $request = new Request($this->getAbsoluteUri('/V1/products/' . urlencode($sku)), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
@@ -118,7 +120,7 @@ final class ApiClient
     {
         return call(function () use ($sku, $productData, $storeCode) {
             $request = $this->createJsonRequest(
-                $this->getAbsoluteUri('/V1/products/' . $sku, $storeCode),
+                $this->getAbsoluteUri('/V1/products/' . urlencode($sku), $storeCode),
                 'PUT',
                 $productData
             );
@@ -141,6 +143,7 @@ final class ApiClient
     public function getProductMediaGallery(string $sku, string $storeCode = null): Promise
     {
         return call(function () use ($sku, $storeCode) {
+            $sku = urlencode($sku);
             $request = new Request(
                 $this->getAbsoluteUri(
                     "/V1/products/{$sku}/media",
@@ -169,6 +172,7 @@ final class ApiClient
     public function addProductMedia(string $sku, array $mediaData, string $storeCode = null): Promise
     {
         return call(function () use ($sku, $mediaData, $storeCode) {
+            $sku = urlencode($sku);
             $request = $this->createJsonRequest(
                 $this->getAbsoluteUri("/V1/products/{$sku}/media", $storeCode),
                 'POST',
@@ -199,6 +203,7 @@ final class ApiClient
         string $storeCode = null
     ): Promise {
         return call(function () use ($sku, $mediaId, $mediaData, $storeCode) {
+            $sku = urlencode($sku);
             $request = $this->createJsonRequest(
                 $this->getAbsoluteUri("/V1/products/{$sku}/media/{$mediaId}", $storeCode),
                 'PUT',
@@ -345,8 +350,9 @@ final class ApiClient
     public function linkChildProductToConfigurable(string $childSku, string $parentSku): Promise
     {
         return call(function () use ($childSku, $parentSku) {
+            $parentSku = urlencode($parentSku);
             $request = $this->createJsonRequest(
-                $this->getAbsoluteUri("/V1/configurable-products/$parentSku/child"),
+                $this->getAbsoluteUri("/V1/configurable-products/{$parentSku}/child"),
                 'POST',
                 ['childSku' => $childSku]
             );
@@ -493,7 +499,7 @@ final class ApiClient
     public function getStockItem(string $sku): Promise
     {
         return call(function () use ($sku) {
-            $uri = sprintf('/V1/stockItems/%s', $sku);
+            $uri = sprintf('/V1/stockItems/%s', urlencode($sku));
             $request = new Request($this->getAbsoluteUri($uri), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
@@ -515,7 +521,7 @@ final class ApiClient
                 $stockItemId = $stockItemData['stockItem']['item_id'];
                 $request = $this->createJsonRequest(
                     $this->getAbsoluteUri(
-                        sprintf('/V1/products/%s/stockItems/%s', $sku, $stockItemId)
+                        sprintf('/V1/products/%s/stockItems/%s', urlencode($sku), $stockItemId)
                     ),
                     'PUT',
                     $stockItemData
