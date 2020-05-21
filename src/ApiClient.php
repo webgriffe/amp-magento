@@ -20,7 +20,7 @@ final class ApiClient
      * @var HttpClient
      */
     private $client;
-    
+
     /**
      * @var array
      */
@@ -299,7 +299,12 @@ final class ApiClient
         array $translations = []
     ): Promise {
         return call(function () use ($label, $attributeCode, $translations) {
-            $newOption = ['option' => ['label' => $label]];
+            $newOption = [
+                'option' => [
+                    'label' => $label,
+                    'value' => $label,  //For text swatch attributes, the swatch value is taken from the value
+                ]
+            ];
             if (!empty($translations)) {
                 $newOption['option']['store_labels'] = $translations;
             }
