@@ -35,6 +35,7 @@ class Routes extends RouteCollector
     public static $orders            = [];
     public static $categories        = [];
     public static $products          = [];
+    public static $stores            = [];
 
     protected static $imagesIncrementalNumber = 0;
 
@@ -49,6 +50,7 @@ class Routes extends RouteCollector
         self::$orders            = [];
         self::$stockItems        = [];
         self::$shipments         = [];
+        self::$stores            = [];
 
         $this->addRoute(
             'POST',
@@ -522,6 +524,33 @@ class Routes extends RouteCollector
             $option                                             = self::readDecodedRequestBody($request)->option;
             $option->value                                      = (string)random_int(1000, 10000);
             self::$productAttributes[$attributeCode]->options[] = $option;
+
+            if ($option->store_labels) {
+                foreach ($option->store_labels as $storeLabel) {
+                    $storeId = $storeLabel->store_id;
+                    $label = $storeLabel->label;
+                    $storeCode = self::$stores[$storeId];
+
+                    if (!isset(self::$productAttributes[$attributeCode]->_stores)) {
+                        self::$productAttributes[$attributeCode]->_stores = new \stdClass();
+                    }
+
+                    if (!isset(self::$productAttributes[$attributeCode]->_stores->{$storeCode})) {
+                        self::$productAttributes[$attributeCode]->_stores->{$storeCode} = new \stdClass();
+                    }
+
+                    if (!isset(self::$productAttributes[$attributeCode]->_stores->{$storeCode}->options)) {
+                        self::$productAttributes[$attributeCode]->_stores->{$storeCode}->options = [];
+                    }
+
+                    $newOption = new \stdClass();
+                    $newOption->value = $option->value;
+                    $newOption->label = $label;
+
+                    self::$productAttributes[$attributeCode]->_stores->{$storeCode}->options[] = $newOption;
+                }
+            }
+
             $responseBody                                       = true;
             if ($mageVersion === '2.3') {
                 $responseBody = sprintf('id_%s', $option->value);
