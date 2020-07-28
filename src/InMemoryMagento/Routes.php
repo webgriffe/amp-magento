@@ -525,7 +525,7 @@ class Routes extends RouteCollector
             $option->value                                      = (string)random_int(1000, 10000);
             self::$productAttributes[$attributeCode]->options[] = $option;
 
-            if ($option->store_labels) {
+            if (isset($option->store_labels)) {
                 foreach ($option->store_labels as $storeLabel) {
                     $storeId = $storeLabel->store_id;
                     $label = $storeLabel->label;
