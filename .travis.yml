@@ -13,9 +13,10 @@ services:
   - docker
 
 before_script:
+  - composer self-update --1
   - composer validate
   - composer install
-  - composer global require maglnet/composer-require-checker && $(composer global config bin-dir --absolute --quiet)/composer-require-checker
+  - composer global require maglnet/composer-require-checker && $HOME/.composer/vendor/bin/composer-require-checker
   - vendor/bin/phpcs
   - vendor/bin/phpstan analyse --no-progress -l 5 src tests
 
