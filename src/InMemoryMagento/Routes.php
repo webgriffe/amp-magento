@@ -322,7 +322,7 @@ class Routes extends RouteCollector
 
         //Sku search seems to be case insensitive in Magento
         foreach (self::$products as $key => $product) {
-            if (strcasecmp($key, $sku) === 0) {
+            if (strcasecmp((string)$key, $sku) === 0) {
                 return new ResponseStub(200, json_encode($product));
             }
         }
