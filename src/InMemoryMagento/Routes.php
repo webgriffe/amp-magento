@@ -552,7 +552,7 @@ class Routes extends RouteCollector
             }
 
             $responseBody                                       = true;
-            if ($mageVersion === '2.3') {
+            if ($mageVersion !== '2.2') {
                 $responseBody = sprintf('id_%s', $option->value);
             }
             $response = new ResponseStub(200, json_encode($responseBody));
