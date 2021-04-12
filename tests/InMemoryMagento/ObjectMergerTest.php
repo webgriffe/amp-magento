@@ -79,4 +79,49 @@ class ObjectMergerTest extends TestCase
         $this->assertEquals('other_attr', $merge->custom_attributes[1]->attribute_code);
         $this->assertEquals('other_value', $merge->custom_attributes[1]->value);
     }
+
+    public function testMergeCustomerGroupPrices(): void
+    {
+        $this->markTestIncomplete('TODO: Make it green');
+        $merge = ObjectMerger::merge(
+            $this->object(
+                [
+                    'sku' => 'aSKU',
+                    'name' => 'A name',
+                    'type_id' => 'simple',
+                    'attribute_set_id' => 4,
+                    'price' => '12',
+                    'tier_prices' => [
+                        [
+                            'customer_group_id' => 4,
+                            'qty' => 1,
+                            'value' => 10,
+                        ]
+                    ]
+                ]
+            ),
+            $this->object(
+                [
+                    'sku' => 'aSKU',
+                    'name' => 'A name',
+                    'type_id' => 'simple',
+                    'attribute_set_id' => 4,
+                    'price' => '12',
+                    'tier_prices' => [
+                        [
+                            'customer_group_id' => 4,
+                            'qty' => 1,
+                            'value' => 100,
+                        ]
+                    ]
+                ]
+            )
+        );
+
+        $this->assertTrue(is_array($merge->tier_prices));
+        $this->assertCount(1, $merge->tier_prices);
+        $this->assertEquals('100', $merge->tier_prices[0]->value);
+        $this->assertEquals('1', $merge->tier_prices[0]->qty);
+        $this->assertEquals('4', $merge->tier_prices[0]->customer_group_id);
+    }
 }
