@@ -20,6 +20,9 @@ final class ObjectMerger
         return self::mergeGeneric($product1, $product2);
     }
 
+    /**
+     * @throws \Exception
+     */
     private static function mergeGeneric($elem1, $elem2)
     {
         if ($elem1 instanceof \stdClass) {
@@ -36,24 +39,15 @@ final class ObjectMerger
             }
         } elseif (is_array($elem2)) {
             foreach ($elem2 as $key => $value) {
-                //Special case for arrays of ['attribute_code' => 'xxx', 'value' => 'yyy'] elements
                 if (self::hasFieldOrKey($value, 'attribute_code')) {
-                    $attributeCode = self::getValue($value, 'attribute_code');
-
-                    if (is_array($result)) {
-                        foreach ($result as $key1 => $value1) {
-                            if (self::getValue($value1, 'attribute_code') == $attributeCode) {
-                                $result[$key1] = $value;
-                                continue 2;
-                            }
-                        }
-
-                        $result[] = $value;
-                        continue;
-                    }
+                    $result = self::mergeProductAttributes($value, $result);
+                }
+                elseif (self::hasFieldOrKey($value, 'customer_group_id') && self::hasFieldOrKey($value, 'qty')) {
+                    $result = self::mergeTierPrices($value, $result);
+                } else {
+                    self::mergeValue($result, $key, $value);
                 }
 
-                self::mergeValue($result, $key, $value);
             }
         } else {
             //Non-object and non-array values. Can't merge, and in this case we must give precedence to the second
@@ -105,5 +99,54 @@ final class ObjectMerger
         } else {
             throw new \Exception("Can't access a field of a scalar value");
         }
+    }
+
+    /**
+     * @param $value
+     * @param $result
+     * @return array
+     * @throws \Exception
+     */
+    private static function mergeProductAttributes($value, $result): array
+    {
+        $attributeCode = (string)self::getValue($value, 'attribute_code');
+
+        if (is_array($result)) {
+            foreach ($result as $key1 => $value1) {
+                if ((string)self::getValue($value1, 'attribute_code') === $attributeCode) {
+                    $result[$key1] = $value;
+                    return $result;
+                }
+            }
+
+            $result[] = $value;
+            return $result;
+        }
+        return $result;
+    }
+
+    /**
+     * @param $value
+     * @param $result
+     * @return mixed
+     * @throws \Exception
+     */
+    private static function mergeTierPrices($value, $result)
+    {
+        $customerGroupId = (int)self::getValue($value, 'customer_group_id');
+        $qty = (int)self::getValue($value, 'qty');
+        if (is_array($result)) {
+            foreach ($result as $key1 => $value1) {
+                if ((int)self::getValue($value1, 'customer_group_id') === $customerGroupId &&
+                    (int)self::getValue($value1, 'qty') == $qty) {
+                    $result[$key1] = $value;
+                    return $result;
+                }
+            }
+
+            $result[] = $value;
+            return $result;
+        }
+        return $result;
     }
 }

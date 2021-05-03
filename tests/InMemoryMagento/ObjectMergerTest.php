@@ -82,7 +82,6 @@ class ObjectMergerTest extends TestCase
 
     public function testMergeCustomerGroupPrices(): void
     {
-        $this->markTestIncomplete('TODO: Make it green');
         $merge = ObjectMerger::merge(
             $this->object(
                 [
