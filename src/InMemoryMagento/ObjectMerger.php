@@ -41,13 +41,11 @@ final class ObjectMerger
             foreach ($elem2 as $key => $value) {
                 if (self::hasFieldOrKey($value, 'attribute_code')) {
                     $result = self::mergeProductAttributes($value, $result);
-                }
-                elseif (self::hasFieldOrKey($value, 'customer_group_id') && self::hasFieldOrKey($value, 'qty')) {
+                } elseif (self::hasFieldOrKey($value, 'customer_group_id') && self::hasFieldOrKey($value, 'qty')) {
                     $result = self::mergeTierPrices($value, $result);
                 } else {
                     self::mergeValue($result, $key, $value);
                 }
-
             }
         } else {
             //Non-object and non-array values. Can't merge, and in this case we must give precedence to the second
