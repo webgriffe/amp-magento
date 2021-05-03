@@ -100,8 +100,6 @@ final class ObjectMerger
     }
 
     /**
-     * @param $value
-     * @param $result
      * @return array
      * @throws \Exception
      */
@@ -124,8 +122,6 @@ final class ObjectMerger
     }
 
     /**
-     * @param $value
-     * @param $result
      * @return mixed
      * @throws \Exception
      */
