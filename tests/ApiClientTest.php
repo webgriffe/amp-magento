@@ -373,7 +373,6 @@ class ApiClientTest extends TestCase
         $this->assertCount(4, $foundAttributeOptions);
     }
 
-
     public function testShouldLinkSimpleProductToConfigurable()
     {
         Routes::$products['SKU-123'] = $this->object(
@@ -745,5 +744,102 @@ class ApiClientTest extends TestCase
         $this->assertCount(1, Routes::$stockItems);
         $this->assertEquals(1, $itemId);
         $this->assertEquals(10, Routes::$stockItems['product-123']->qty);
+    }
+
+    public function testCreateMediaGalleryImage()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+                'media_gallery_entries' => []
+            ]
+        );
+
+        $newImageData = [
+            'entry' => [
+                'media_type' => 'image',
+                'label' => 'file_name.jpg',
+                'position' => 0,
+                'disabled' => false,
+                'types' => [],
+                'content' => [
+                    'base64_encoded_data' => base64_encode('this is the image data'),
+                    'type' => 'image/jpeg',
+                    'name' => 'file_name.jpg'
+                ],
+            ]
+        ];
+        wait($this->client->addProductMedia('SKU-123', $newImageData));
+
+        $mediaGalleryEntries = Routes::$products['SKU-123']->media_gallery_entries;
+        $this->assertCount(1, $mediaGalleryEntries);
+        $image = reset($mediaGalleryEntries);
+        $this->assertEquals(
+            [
+                'content' => 'this is the image data',
+                'type' => 'image/jpeg',
+                'name' => 'file_name.jpg'
+            ],
+            $image->testData
+        );
+    }
+
+    public function testUpdateMediaGalleryImage()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+            ]
+        );
+
+        Routes::$products['SKU-123']->media_gallery_entries = [
+            1 => $this->object(
+                [
+                    'id' => 1,
+                    'media_type' => 'image',
+                    'label' => 'SKU-123.jpg',
+                    'position' => 0,
+                    'disabled' => false,
+                    'types' => [],
+                    'file' => 'SKU-123.jpg',
+                ]
+            ),
+        ];
+
+
+        $newImageData = [
+            'entry' => [
+                'id' => 1,
+                'media_type' => 'image',
+                'label' => 'new_file_name.jpg',
+                'position' => 0,
+                'disabled' => false,
+                'types' => [],
+                'content' => [
+                    'base64_encoded_data' => base64_encode('this is the new image data'),
+                    'type' => 'image/jpeg',
+                    'name' => 'new_file_name.jpg'
+                ],
+            ]
+        ];
+        wait($this->client->updateProductMedia('SKU-123', '1', $newImageData));
+
+        $mediaGalleryEntries = Routes::$products['SKU-123']->media_gallery_entries;
+        $this->assertCount(1, $mediaGalleryEntries);
+        $image = reset($mediaGalleryEntries);
+        $this->assertEquals(
+            [
+                'content' => 'this is the new image data',
+                'type' => 'image/jpeg',
+                'name' => 'new_file_name.jpg'
+            ],
+            $image->testData
+        );
     }
 }
