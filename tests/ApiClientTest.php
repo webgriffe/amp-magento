@@ -186,7 +186,6 @@ class ApiClientTest extends TestCase
 
         $productData = ['product' => ['name' => 'New Name']];
         wait($this->client->updateProduct('SKU-123', $productData));
-
         $this->assertEquals('New Name', Routes::$products['SKU-123']->name);
     }
 
@@ -840,6 +839,153 @@ class ApiClientTest extends TestCase
                 'name' => 'new_file_name.jpg'
             ],
             $image->testData
+        );
+    }
+
+    public function testCreateMediaGalleryVideo()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+                'media_gallery_entries' => []
+            ]
+        );
+
+        $newVideoData = [
+            'entry' => [
+                'media_type' => 'external-video',
+                'label' => 'my_video.mp4',
+                'position' => 0,
+                'disabled' => false,
+                'types' => [],
+                'content' => [
+                    'base64_encoded_data' => base64_encode('this is the cover image'),
+                    'type' => 'image/jpeg',
+                    'name' => 'cover.jpg'
+                ],
+                'extension_attributes' => [
+                    'video_content' => [
+                        'media_type' => 'external-video',
+                        'video_provider' => '',
+                        'video_url' => 'https://player.vimeo.com/external/test.sd.mp4',
+                        'video_title' => 'SKU-123',
+                        'video_description' => '',
+                        'video_metadata' => ''
+                    ]
+                ]
+            ]
+        ];
+        wait($this->client->addProductMedia('SKU-123', $newVideoData));
+
+        $mediaGalleryEntries = Routes::$products['SKU-123']->media_gallery_entries;
+        $this->assertCount(1, $mediaGalleryEntries);
+        $video = reset($mediaGalleryEntries);
+        $this->assertEquals('external-video', $video->media_type);
+        $this->assertEquals('my_video.mp4', $video->label);
+        $this->assertEquals('external-video', $video->extension_attributes->video_content->media_type);
+        $this->assertEquals(
+            'https://player.vimeo.com/external/test.sd.mp4',
+            $video->extension_attributes->video_content->video_url
+        );
+        $this->assertEquals('SKU-123', $video->extension_attributes->video_content->video_title);
+        $this->assertEquals('', $video->extension_attributes->video_content->video_description);
+        $this->assertEquals('', $video->extension_attributes->video_content->video_metadata);
+
+        $this->assertEquals(
+            [
+                'content' => 'this is the cover image',
+                'type' => 'image/jpeg',
+                'name' => 'cover.jpg'
+            ],
+            $video->testData
+        );
+    }
+
+    public function testUpdateMediaGalleryVideo()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+                'media_gallery_entries' => []
+            ]
+        );
+
+        Routes::$products['SKU-123']->media_gallery_entries = [
+            1 => $this->object(
+                [
+                    'media_type' => 'external-video',
+                    'label' => 'my_video.mp4',
+                    'position' => 0,
+                    'disabled' => false,
+                    'types' => [],
+                    'content' => [
+                        'base64_encoded_data' => base64_encode('this is the cover image'),
+                        'type' => 'image/jpeg',
+                        'name' => 'cover.jpg'
+                    ],
+                    'extension_attributes' => [
+                        'video_content' => [
+                            'media_type' => 'external-video',
+                            'video_provider' => '',
+                            'video_url' => 'https://player.vimeo.com/external/test.sd.mp4',
+                            'video_title' => 'SKU-123',
+                            'video_description' => '',
+                            'video_metadata' => ''
+                        ]
+                    ]
+                ]
+            ),
+        ];
+
+        $newVideoData = [
+            'entry' => [
+                'id' => 1,
+                'media_type' => 'external-video',
+                'label' => 'another_video.mp4',
+                'position' => 0,
+                'disabled' => false,
+                'types' => [],
+                'content' => [
+                    'base64_encoded_data' => base64_encode('this is another cover image'),
+                    'type' => 'image/jpeg',
+                    'name' => 'another_cover.jpg'
+                ],
+                'extension_attributes' => [
+                    'video_content' => [
+                        'media_type' => 'external-video',
+                        'video_provider' => '',
+                        'video_url' => 'https://player.vimeo.com/external/another_test.sd.mp4',
+                        'video_title' => 'SKU-123',
+                        'video_description' => '',
+                        'video_metadata' => ''
+                    ]
+                ]
+            ]
+        ];
+        wait($this->client->updateProductMedia('SKU-123', '1', $newVideoData));
+
+        $mediaGalleryEntries = Routes::$products['SKU-123']->media_gallery_entries;
+        $this->assertCount(1, $mediaGalleryEntries);
+        $video = reset($mediaGalleryEntries);
+        $this->assertEquals('external-video', $video->media_type);
+        $this->assertEquals('another_video.mp4', $video->label);
+        $this->assertEquals(
+            'https://player.vimeo.com/external/another_test.sd.mp4',
+            $video->extension_attributes->video_content->video_url
+        );
+        $this->assertEquals(
+            [
+                'content' => 'this is another cover image',
+                'type' => 'image/jpeg',
+                'name' => 'another_cover.jpg'
+            ],
+            $video->testData
         );
     }
 }
