@@ -69,6 +69,11 @@ class Routes extends RouteCollector
         $this->addRoute('POST', '/rest/all/V1/products/{sku}/media', [__CLASS__, 'postProductMediaHandler']);
         $this->addRoute('PUT', '/rest/all/V1/products/{sku}/media/{entryid}', [__CLASS__, 'putProductMediaHandler']);
         $this->addRoute(
+            'DELETE',
+            '/rest/all/V1/products/{sku}/media/{entryid}',
+            [__CLASS__, 'deleteProductMediaHandler']
+        );
+        $this->addRoute(
             'POST',
             '/rest/all/V1/products/attributes/{attributeCode}/options',
             [__CLASS__, 'postProductsAttributesOptionsHandler']
@@ -190,6 +195,23 @@ class Routes extends RouteCollector
         $newMedia = self::readDecodedRequestBody($request)->entry;
 
         return self::updateProductMediaGallery($sku, $newMedia, $uriParams['entryid']);
+    }
+
+    public static function deleteProductMediaHandler(Request $request, array $uriParams)
+    {
+        $sku = $uriParams['sku'];
+        $mediaId = $uriParams['entryid'];
+
+        if (!array_key_exists($sku, self::$products)) {
+            return new ResponseStub(404, json_encode(['message' => 'Product not found']));
+        }
+
+        if (!array_key_exists($mediaId, self::$products[$sku]->media_gallery_entries)) {
+            return new ResponseStub(404, json_encode(['message' => 'Product not found']));
+        }
+
+        unset(self::$products[$sku]->media_gallery_entries[$mediaId]);
+        return new ResponseStub(200, json_encode(true));
     }
 
     private static function updateProductMediaGallery($sku, \stdClass $newMedia, $entryId = null)

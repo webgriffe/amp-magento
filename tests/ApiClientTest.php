@@ -988,4 +988,49 @@ class ApiClientTest extends TestCase
             $video->testData
         );
     }
+
+    public function testDeleteMediaGalleryEntry()
+    {
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+                'media_gallery_entries' => []
+            ]
+        );
+
+        Routes::$products['SKU-123']->media_gallery_entries = [
+            1 => $this->object(
+                [
+                    'media_type' => 'external-video',
+                    'label' => 'my_video.mp4',
+                    'position' => 0,
+                    'disabled' => false,
+                    'types' => [],
+                    'content' => [
+                        'base64_encoded_data' => base64_encode('this is the cover image'),
+                        'type' => 'image/jpeg',
+                        'name' => 'cover.jpg'
+                    ],
+                    'extension_attributes' => [
+                        'video_content' => [
+                            'media_type' => 'external-video',
+                            'video_provider' => '',
+                            'video_url' => 'https://player.vimeo.com/external/test.sd.mp4',
+                            'video_title' => 'SKU-123',
+                            'video_description' => '',
+                            'video_metadata' => ''
+                        ]
+                    ]
+                ]
+            ),
+        ];
+
+        wait($this->client->deleteProductMedia('SKU-123', '1'));
+
+        $mediaGalleryEntries = Routes::$products['SKU-123']->media_gallery_entries;
+        $this->assertCount(0, $mediaGalleryEntries);
+    }
 }

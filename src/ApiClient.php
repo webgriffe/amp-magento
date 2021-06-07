@@ -220,6 +220,17 @@ final class ApiClient
     }
 
     /**
+     * @param string $sku
+     * @param string $mediaId
+     * @return Promise
+     */
+    public function deleteProductMedia(string $sku, string $mediaId): Promise
+    {
+        $sku = urlencode($sku);
+        return $this->makeDeleteRequest("/V1/products/{$sku}/media/{$mediaId}");
+    }
+
+    /**
      * @return Promise
      * @throws \Amp\ByteStream\PendingReadError
      * @throws \TypeError
