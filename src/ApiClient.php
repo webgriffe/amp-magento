@@ -817,7 +817,8 @@ final class ApiClient
                         "{$request->getMethod()} {$request->getUri()}",
                         $requestBodyFile,
                         $responseBodyFile
-                    )
+                    ),
+                    $responseStatus
                 );
             }
         );
