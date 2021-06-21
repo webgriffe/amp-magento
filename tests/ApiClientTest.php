@@ -1033,4 +1033,31 @@ class ApiClientTest extends TestCase
         $mediaGalleryEntries = Routes::$products['SKU-123']->media_gallery_entries;
         $this->assertCount(0, $mediaGalleryEntries);
     }
+
+    public function testRequestWithAccessToken()
+    {
+        $configWithAccessToken = [
+            'baseUrl' => 'http://my-url',
+            'access_token' => 'access-token-for-esb-integration',
+        ];
+        $schemaJson = file_get_contents(__DIR__ . '/mage22-schema.json');
+        $inMemoryMagento = new Server($schemaJson, new Routes());
+        $fakeClient = new HttpClient($inMemoryMagento);
+        $client = new ApiClient($fakeClient, $configWithAccessToken);
+
+        Routes::$accessToken='access-token-for-esb-integration';
+        Routes::$products['SKU-123'] = $this->object(
+            [
+                'sku' => 'SKU-123',
+                'name' => 'Product Name',
+                'attribute_set_id' => 4,
+                'type_id' => 'simple',
+                'media_gallery_entries' => []
+            ]
+        );
+
+        $foundProduct = wait($client->getProduct('SKU-123'));
+
+        $this->assertNotNull($foundProduct);
+    }
 }

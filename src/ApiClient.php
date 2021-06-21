@@ -9,6 +9,7 @@ use Amp\Artax\Request;
 use Amp\Artax\Response;
 use Amp\File;
 use Amp\Promise;
+use Amp\Success;
 use function Amp\call;
 use Webmozart\Assert\Assert;
 
@@ -726,6 +727,15 @@ final class ApiClient
      * @throws \TypeError
      */
     private function login(): Promise
+    {
+        if (!empty($this->config['access_token'])) {
+            $this->token = $this->config['access_token'];
+            return new Success();
+        }
+        return $this->loginWithAdminUser();
+    }
+
+    private function loginWithAdminUser()
     {
         return call(function () {
             $request = $this->createJsonRequest(

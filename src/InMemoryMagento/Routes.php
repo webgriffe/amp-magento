@@ -36,7 +36,7 @@ class Routes extends RouteCollector
     public static $categories        = [];
     public static $products          = [];
     public static $stores            = [];
-    public static $accessToken       = [];
+    public static $accessToken = null;
 
     protected static $imagesIncrementalNumber = 0;
 
