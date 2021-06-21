@@ -36,6 +36,7 @@ class Routes extends RouteCollector
     public static $categories        = [];
     public static $products          = [];
     public static $stores            = [];
+    public static $accessToken       = [];
 
     protected static $imagesIncrementalNumber = 0;
 
@@ -145,6 +146,10 @@ class Routes extends RouteCollector
      */
     public static function putProductsForStoreViewHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku     = $uriParams['sku'];
         $product = self::readDecodedRequestBody($request)->product;
 
@@ -163,6 +168,10 @@ class Routes extends RouteCollector
 
     public static function getProductMediasHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku = $uriParams['sku'];
         if (!array_key_exists($sku, self::$products)) {
             return new ResponseStub(404, json_encode(['message' => 'Product not found']));
@@ -175,6 +184,10 @@ class Routes extends RouteCollector
 
     public static function postProductMediaHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku = $uriParams['sku'];
         if (!array_key_exists($sku, self::$products)) {
             return new ResponseStub(404, json_encode(['message' => 'Product not found']));
@@ -187,6 +200,10 @@ class Routes extends RouteCollector
 
     public static function putProductMediaHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku = $uriParams['sku'];
         if (!array_key_exists($sku, self::$products)) {
             return new ResponseStub(404, json_encode(['message' => 'Product not found']));
@@ -199,6 +216,10 @@ class Routes extends RouteCollector
 
     public static function deleteProductMediaHandler(Request $request, array $uriParams)
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku = $uriParams['sku'];
         $mediaId = $uriParams['entryid'];
 
@@ -277,7 +298,8 @@ class Routes extends RouteCollector
         $response = new ResponseStub(401, json_encode(['message' => 'Login failed']));
         if (self::readDecodedRequestBody($request)->username === self::ADMIN_USER &&
             self::readDecodedRequestBody($request)->password === self::ADMIN_PASS) {
-            $response = new ResponseStub(200, json_encode(uniqid('', true)));
+            self::$accessToken = uniqid('', true);
+            $response = new ResponseStub(200, json_encode(self::$accessToken));
         }
 
         return $response;
@@ -292,6 +314,10 @@ class Routes extends RouteCollector
      */
     public static function getProductsAttributesHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         return self::createSearchCriteriaResponse(
             self::$productAttributes,
             self::buildUriFromString($request->getUri())->getQuery()
@@ -302,6 +328,10 @@ class Routes extends RouteCollector
         Request $request,
         array $uriParams
     ): ResponseStub {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $attributeCode = $uriParams['attributeCode'];
         $storeCode     = $uriParams['storeCode'];
         $response      = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
@@ -325,6 +355,10 @@ class Routes extends RouteCollector
      */
     public static function getCategoriesListHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         return self::createSearchCriteriaResponse(
             self::$categories,
             self::buildUriFromString($request->getUri())->getQuery()
@@ -339,6 +373,9 @@ class Routes extends RouteCollector
      */
     public static function getProductHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
         $sku      = $uriParams['sku'];
         $response = new ResponseStub(404, json_encode(['message' => 'Product not found.']));
 
@@ -360,6 +397,10 @@ class Routes extends RouteCollector
      */
     public static function getProductsHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         return self::createSearchCriteriaResponse(
             self::$products,
             self::buildUriFromString($request->getUri())->getQuery()
@@ -374,6 +415,10 @@ class Routes extends RouteCollector
      */
     public static function getProductsForStoreHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         return self::createSearchCriteriaResponse(
             self::$products,
             self::buildUriFromString($request->getUri())->getQuery(),
@@ -390,6 +435,10 @@ class Routes extends RouteCollector
      */
     public static function postProductsHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $product = self::readDecodedRequestBody($request)->product;
         Assert::isInstanceOf($product, \stdClass::class);
         if (!isset($product->price)) {
@@ -466,6 +515,10 @@ class Routes extends RouteCollector
      */
     public static function putProductsHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku     = $uriParams['sku'];
         $product = self::readDecodedRequestBody($request)->product;
         if (isset($product->weight) && !\is_numeric($product->weight)) {
@@ -540,6 +593,10 @@ class Routes extends RouteCollector
         array $uriParams,
         string $mageVersion
     ): ResponseStub {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $attributeCode = $uriParams['attributeCode'];
         $response      = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
         if (!empty(self::$productAttributes[$attributeCode])) {
@@ -591,6 +648,10 @@ class Routes extends RouteCollector
      */
     public static function getProductAttributesOptionsHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $attributeCode = $uriParams['attributeCode'];
         $response      = new ResponseStub(404, json_encode(['message' => 'Attribute not found.']));
         if (!empty(self::$productAttributes[$attributeCode])) {
@@ -609,6 +670,10 @@ class Routes extends RouteCollector
      */
     public static function postConfigurableProductsChildHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $parentSku = $uriParams['parentSku'];
         if (!array_key_exists($parentSku, self::$products) ||
             !array_key_exists(self::readDecodedRequestBody($request)->childSku, self::$products)) {
@@ -634,6 +699,10 @@ class Routes extends RouteCollector
      */
     public static function getInvoicesHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         return self::createSearchCriteriaResponse(
             self::$invoices,
             self::buildUriFromString($request->getUri())->getQuery()
@@ -648,6 +717,10 @@ class Routes extends RouteCollector
      */
     public static function getShipmentsHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         return self::createSearchCriteriaResponse(
             self::$shipments,
             self::buildUriFromString($request->getUri())->getQuery()
@@ -662,6 +735,10 @@ class Routes extends RouteCollector
      */
     public static function getOrderHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order not found.']));
         if (isset(self::$orders[$orderId])) {
@@ -680,6 +757,10 @@ class Routes extends RouteCollector
      */
     public static function getOrdersHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         return self::createSearchCriteriaResponse(
             self::$orders,
             self::buildUriFromString($request->getUri())->getQuery()
@@ -694,6 +775,10 @@ class Routes extends RouteCollector
      */
     public static function getStockItemsHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku      = $uriParams['sku'];
         $response = new ResponseStub(404, json_encode(['message' => 'Stock item not found.']));
         if (isset(self::$stockItems[$sku])) {
@@ -712,6 +797,10 @@ class Routes extends RouteCollector
      */
     public static function putProductsStockItemsHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $sku = $uriParams['sku'];
         if (isset(self::readDecodedRequestBody($request)->stockItem->qty) &&
             !\is_numeric(self::readDecodedRequestBody($request)->stockItem->qty)) {
@@ -738,6 +827,10 @@ class Routes extends RouteCollector
      */
     public static function postOrderShipHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
@@ -816,6 +909,10 @@ class Routes extends RouteCollector
      */
     public static function postOrderInvoiceHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
@@ -882,6 +979,10 @@ class Routes extends RouteCollector
      */
     public static function postOrderCancelHandler(Request $request, array $uriParams): ResponseStub
     {
+        if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
+            return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
+        }
+
         $orderId  = $uriParams['orderId'];
         $response = new ResponseStub(404, json_encode(['message' => 'Order with the given ID does not exist.']));
 
