@@ -1038,7 +1038,7 @@ class ApiClientTest extends TestCase
     {
         $configWithAccessToken = [
             'baseUrl' => 'http://my-url',
-            'access_token' => 'access-token-for-esb-integration',
+            'accessToken' => 'access-token-for-esb-integration',
         ];
         $schemaJson = file_get_contents(__DIR__ . '/mage22-schema.json');
         $inMemoryMagento = new Server($schemaJson, new Routes());

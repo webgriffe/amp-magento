@@ -728,8 +728,8 @@ final class ApiClient
      */
     private function login(): Promise
     {
-        if (!empty($this->config['access_token'])) {
-            $this->token = $this->config['access_token'];
+        if (!empty($this->config['accessToken'])) {
+            $this->token = $this->config['accessToken'];
             return new Success();
         }
         return $this->loginWithAdminUser();
