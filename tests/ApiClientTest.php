@@ -18,7 +18,7 @@ class ApiClientTest extends TestCase
      */
     private $client;
 
-    public function setUp()
+    public function setUp(): void
     {
         $config = [
             'baseUrl' => 'http://my-url',
