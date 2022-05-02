@@ -12,9 +12,7 @@ use Amp\Success;
 
 final class HttpClient implements Client
 {
-    /**
-     * @var Server
-     */
+    /** @var Server */
     private $magento;
 
     public function __construct(Server $magento)

@@ -11,17 +11,13 @@ use Amp\ByteStream\Message;
 
 class ResponseStub implements ResponseInterface
 {
-    /**
-     * @var int
-     */
+    /** @var int */
     private $status;
-    /**
-     * @var string|null
-     */
+
+    /** @var string|null */
     private $body;
-    /**
-     * @var array
-     */
+
+    /** @var array */
     private $headers = [];
 
     public function __construct(int $status, string $body = null)

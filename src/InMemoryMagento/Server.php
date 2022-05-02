@@ -18,19 +18,13 @@ final class Server
     use AssertsTrait;
     use Utils;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $schema;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $mageVersion;
 
-    /**
-     * @var FastRoute\Dispatcher
-     */
+    /** @var FastRoute\Dispatcher */
     private $dispatcher;
 
     /**

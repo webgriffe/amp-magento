@@ -13,9 +13,10 @@ use function Amp\Promise\wait;
 class ApiClientTest extends TestCase
 {
     use Utils;
-    /**
-     * @var ApiClient
-     */
+
+    public const MAGENTO_SCHEMA_JSON_FILE = __DIR__ . '/mage24-schema.json';
+
+    /** @var ApiClient */
     private $client;
 
     public function setUp(): void
@@ -25,7 +26,7 @@ class ApiClientTest extends TestCase
             'username' => 'admin',
             'password' => 'password123'
         ];
-        $schemaJson = file_get_contents(__DIR__ . '/mage22-schema.json');
+        $schemaJson = file_get_contents(self::MAGENTO_SCHEMA_JSON_FILE);
         $inMemoryMagento = new Server($schemaJson, new Routes());
         $fakeClient = new HttpClient($inMemoryMagento);
         $this->client = new ApiClient($fakeClient, $config);
@@ -1040,7 +1041,7 @@ class ApiClientTest extends TestCase
             'baseUrl' => 'http://my-url',
             'accessToken' => 'access-token-for-esb-integration',
         ];
-        $schemaJson = file_get_contents(__DIR__ . '/mage22-schema.json');
+        $schemaJson = file_get_contents(self::MAGENTO_SCHEMA_JSON_FILE);
         $inMemoryMagento = new Server($schemaJson, new Routes());
         $fakeClient = new HttpClient($inMemoryMagento);
         $client = new ApiClient($fakeClient, $configWithAccessToken);

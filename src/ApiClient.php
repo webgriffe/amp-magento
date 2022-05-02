@@ -17,19 +17,13 @@ final class ApiClient
 {
     const DEFAULT_CLIENT_TIMEOUT = 30000;
 
-    /**
-     * @var HttpClient
-     */
+    /** @var HttpClient */
     private $client;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $config;
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $token;
 
     public function __construct(HttpClient $client, array $config)
