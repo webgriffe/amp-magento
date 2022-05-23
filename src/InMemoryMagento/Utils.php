@@ -98,12 +98,14 @@ trait Utils
         }
 
         if (empty($parsedQuery['searchCriteria']) || empty($parsedQuery['searchCriteria']['filterGroups'])) {
+            $responseSearchCriteria = new \stdClass();
+            $responseSearchCriteria->filter_groups = [];
             return new ResponseStub(
                 200,
                 json_encode(
                     [
-                        'items' => $data,
-                        'search_criteria' => [],
+                        'items' => array_values($data),
+                        'search_criteria' => $responseSearchCriteria,
                         'total_count' => \count($data)
                     ]
                 )
@@ -184,12 +186,16 @@ trait Utils
             $data = $groupData;
         }
 
+        $responseSearchCriteria = $parsedQuery['searchCriteria'];
+        $responseSearchCriteria['filter_groups'] = $responseSearchCriteria['filterGroups'];
+        unset($responseSearchCriteria['filterGroups']);
+
         return new ResponseStub(
             200,
             json_encode(
                 [
                     'items' => array_values($data),
-                    'search_criteria' => [],
+                    'search_criteria' => $responseSearchCriteria,
                     'total_count' => \count($data)
                 ]
             )

@@ -57,7 +57,14 @@ class ApiClientTest extends TestCase
                 'name' => 'Product Name',
                 'attribute_set_id' => 4,
                 'type_id' => 'simple',
-                'extension_attributes' => ['stock_item' => ['qty' => 100, 'is_in_stock' => true]]
+                'extension_attributes' => [
+                    'stock_item' => $this->getStockItemData(
+                        [
+                            'qty' => 100,
+                            'is_in_stock' => true,
+                        ]
+                    ),
+                ]
             ]
         );
 
@@ -181,11 +188,18 @@ class ApiClientTest extends TestCase
                 'name' => 'Product Name',
                 'attribute_set_id' => 4,
                 'type_id' => 'simple',
-                'extension_attributes' => ['stock_item' => ['qty' => 100, 'is_in_stock' => true]]
+                'extension_attributes' => [
+                    'stock_item' => $this->getStockItemData(
+                        [
+                            'qty' => 100,
+                            'is_in_stock' => true,
+                        ]
+                    ),
+                ],
             ]
         );
 
-        $productData = ['product' => ['name' => 'New Name']];
+        $productData = ['product' => ['sku' => 'SKU-123', 'name' => 'New Name',]];
         wait($this->client->updateProduct('SKU-123', $productData));
         $this->assertEquals('New Name', Routes::$products['SKU-123']->name);
     }
@@ -200,33 +214,49 @@ class ApiClientTest extends TestCase
         Routes::$productAttributes =  [
             'description' => $this->object(
                 [
-                    'attribute_id' => '1',
+                    'attribute_id' => 1,
                     'attribute_code' => 'description',
                     'default_frontend_label' => 'Description',
+                    'frontend_input' => 'text',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [],
                 ]
             ),
             'material' => $this->object(
                 [
-                    'attribute_id' => '101',
+                    'attribute_id' => 101,
                     'attribute_code' => 'material',
                     'default_frontend_label' => 'Material',
+                    'frontend_input' => 'text',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [],
                 ]
             ),
             'composition' => $this->object(
                 [
-                    'attribute_id' => '102',
+                    'attribute_id' => 102,
                     'attribute_code' => 'composition',
                     'default_frontend_label' => 'Composition',
+                    'frontend_input' => 'text',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [],
                 ]
             ),
             'size' => $this->object(
                 [
-                    'attribute_id' => '103',
+                    'attribute_id' => 103,
                     'attribute_code' => 'size',
                     'default_frontend_label' => 'Size',
+                    'frontend_input' => 'select',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [
                         ['label' => ' ', 'value' => ''],
                         ['label' => 'Small', 'value' => '1'],
@@ -253,33 +283,49 @@ class ApiClientTest extends TestCase
         Routes::$productAttributes =  [
             'description' => $this->object(
                 [
-                    'attribute_id' => '1',
+                    'attribute_id' => 1,
                     'attribute_code' => 'description',
                     'default_frontend_label' => 'Description',
+                    'frontend_input' => 'text',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [],
                 ]
             ),
             'material' => $this->object(
                 [
-                    'attribute_id' => '101',
+                    'attribute_id' => 101,
                     'attribute_code' => 'material',
                     'default_frontend_label' => 'Material',
+                    'frontend_input' => 'text',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [],
                 ]
             ),
             'composition' => $this->object(
                 [
-                    'attribute_id' => '102',
+                    'attribute_id' => 102,
                     'attribute_code' => 'composition',
                     'default_frontend_label' => 'Composition',
+                    'frontend_input' => 'text',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [],
                 ]
             ),
             'size' => $this->object(
                 [
-                    'attribute_id' => '103',
+                    'attribute_id' => 103,
                     'attribute_code' => 'size',
                     'default_frontend_label' => 'Size',
+                    'frontend_input' => 'select',
+                    'entity_type_id' => 'product',
+                    'is_required' => false,
+                    'frontend_labels' => [],
                     'options' => [
                         ['label' => ' ', 'value' => ''],
                         ['label' => 'Small', 'value' => '1'],
@@ -301,7 +347,7 @@ class ApiClientTest extends TestCase
     {
         Routes::$categories[] = $this->object(
             [
-                'id' => '500',
+                'id' => 500,
                 'name' => 'Man',
                 'path' => '1/2/300/400/500',
                 'custom_attributes' => [['attribute_code' => 'sizeguide-type', 'value' => 'sizeguide-man']]
@@ -310,7 +356,7 @@ class ApiClientTest extends TestCase
 
         Routes::$categories[] = $this->object(
             [
-                'id' => '600',
+                'id' => 600,
                 'name' => 'Woman',
                 'path' => '1/2/300/400/600',
                 'custom_attributes' => [['attribute_code' => 'sizeguide-type', 'value' => 'sizeguide-woman']]
@@ -1060,5 +1106,37 @@ class ApiClientTest extends TestCase
         $foundProduct = wait($client->getProduct('SKU-123'));
 
         $this->assertNotNull($foundProduct);
+    }
+
+    private function getStockItemData(array $override): array
+    {
+        return array_merge(
+            [
+                'qty' => 0,
+                'is_in_stock' => false,
+                'is_qty_decimal' => false,
+                'show_default_notification_message' => true,
+                'use_config_min_qty' => true,
+                'min_qty' => 1,
+                'use_config_min_sale_qty' => 1,
+                'min_sale_qty' => 1,
+                'use_config_max_sale_qty' => true,
+                'max_sale_qty' => 999999999,
+                'use_config_backorders' => true,
+                'backorders' => 0,
+                'use_config_notify_stock_qty' => true,
+                'notify_stock_qty' => 0,
+                'use_config_qty_increments' => true,
+                'qty_increments' => 1,
+                'use_config_enable_qty_inc' => true,
+                'enable_qty_increments' => false,
+                'use_config_manage_stock' => true,
+                'manage_stock' => true,
+                'low_stock_date' => '',
+                'is_decimal_divided' => false,
+                'stock_status_changed_auto' => 0,
+            ],
+            $override
+        );
     }
 }

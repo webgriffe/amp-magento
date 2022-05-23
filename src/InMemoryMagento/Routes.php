@@ -499,7 +499,7 @@ class Routes extends RouteCollector
             }
         }
 
-        $product->id                   = (string)random_int(1000, 10000);
+        $product->id                   = random_int(1000, 10000);
         self::$products[$product->sku] = $product;
         $response                      = new ResponseStub(200, json_encode($product));
 
