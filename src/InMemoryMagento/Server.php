@@ -9,6 +9,7 @@ use Amp\Artax\Response;
 use Amp\Promise;
 use FastRoute;
 use FastRoute\Dispatcher\GroupCountBased;
+use FR3D\SwaggerAssertions\JsonSchema\RefResolver;
 use FR3D\SwaggerAssertions\PhpUnit\AssertsTrait;
 use FR3D\SwaggerAssertions\SchemaManager;
 use PHPUnit\Framework\ExpectationFailedException;
@@ -42,8 +43,13 @@ final class Server
         array_walk(
             $swaggerSchemaParams,
             function ($schema, $code) {
-                $swaggerSchema = json_decode($schema, false);
-                $this->schema[$code] = new SchemaManager($swaggerSchema);
+                //The fromUri() method does some magic to resolve the references in the schema, but it wants an URL, not
+                //the raw JSON of the schema. So we write the schema JSON in a file and then build a file:// URL to that
+                //file to instantiate the schema manager from
+                $tempFilePathName = tempnam(sys_get_temp_dir(), 'schema');
+                file_put_contents($tempFilePathName, $schema);
+                $this->schema[$code] = SchemaManager::fromUri('file://'.$tempFilePathName);
+                unlink($tempFilePathName);
             }
         );
 
