@@ -12,6 +12,7 @@ use FastRoute\Dispatcher\GroupCountBased;
 use FR3D\SwaggerAssertions\JsonSchema\RefResolver;
 use FR3D\SwaggerAssertions\PhpUnit\AssertsTrait;
 use FR3D\SwaggerAssertions\SchemaManager;
+use JsonSchema\Constraints\Factory;
 use PHPUnit\Framework\ExpectationFailedException;
 
 final class Server
@@ -31,29 +32,28 @@ final class Server
     /**
      * Server constructor.
      *
-     * @param string|array $swaggerSchemaParams
+     * @param string|array $swaggerSchemaPaths
      * @param Routes       $inMemoryMagentoRoutes
      */
-    public function __construct($swaggerSchemaParams, Routes $inMemoryMagentoRoutes)
+    public function __construct($swaggerSchemaPaths, Routes $inMemoryMagentoRoutes)
     {
-        if (!is_array($swaggerSchemaParams)) {
-            $swaggerSchemaParams = ['all' => $swaggerSchemaParams];
+        if (!is_array($swaggerSchemaPaths)) {
+            $swaggerSchemaPaths = ['all' => $swaggerSchemaPaths];
         }
 
         array_walk(
-            $swaggerSchemaParams,
-            function ($schema, $code) {
-                //The fromUri() method does some magic to resolve the references in the schema, but it wants an URL, not
-                //the raw JSON of the schema. So we write the schema JSON in a file and then build a file:// URL to that
-                //file to instantiate the schema manager from
-                $tempFilePathName = tempnam(sys_get_temp_dir(), 'schema');
-                file_put_contents($tempFilePathName, $schema);
-                $this->schema[$code] = SchemaManager::fromUri('file://'.$tempFilePathName);
-                unlink($tempFilePathName);
+            $swaggerSchemaPaths,
+            function ($schemaPath, $storeCode) {
+                //It is necessary to manually resolve all refs before initializing the SchemaManager, otherwise
+                //infinite loops result in case of circular references
+                $factory = new Factory();
+                $storage = $factory->getSchemaStorage();
+                $storage->addSchema('temp', $factory->getUriRetriever()->retrieve('file://'.$schemaPath));
+                $this->schema[$storeCode] = new SchemaManager($storage->getSchema('temp'));
             }
         );
 
-        $this->mageVersion = $this->getMageVersionFromAnyOfTheSchemas($swaggerSchemaParams);
+        $this->mageVersion = $this->getMageVersionFromAnyOfTheSchemas($swaggerSchemaPaths);
         $this->dispatcher  = new GroupCountBased($inMemoryMagentoRoutes->getData());
     }
 
@@ -232,12 +232,12 @@ final class Server
     }
 
     /**
-     * @param array $swaggerSchemaParams
+     * @param array $swaggerSchemaPaths
      * @return string
      */
-    private function getMageVersionFromAnyOfTheSchemas($swaggerSchemaParams)
+    private function getMageVersionFromAnyOfTheSchemas($swaggerSchemaPaths)
     {
-        $anySwaggerSchema = json_decode(array_values($swaggerSchemaParams)[0], false);
+        $anySwaggerSchema = json_decode(file_get_contents(array_values($swaggerSchemaPaths)[0]), false);
         return $anySwaggerSchema->info->version;
     }
 }

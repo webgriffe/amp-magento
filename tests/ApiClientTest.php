@@ -26,8 +26,7 @@ class ApiClientTest extends TestCase
             'username' => 'admin',
             'password' => 'password123'
         ];
-        $schemaJson = file_get_contents(self::MAGENTO_SCHEMA_JSON_FILE);
-        $inMemoryMagento = new Server($schemaJson, new Routes());
+        $inMemoryMagento = new Server(realpath(self::MAGENTO_SCHEMA_JSON_FILE), new Routes());
         $fakeClient = new HttpClient($inMemoryMagento);
         $this->client = new ApiClient($fakeClient, $config);
     }
@@ -932,31 +931,61 @@ class ApiClientTest extends TestCase
         Routes::$stockItems['product-123'] = $this->object([
             'item_id' => 1,
             'qty' => 3,
-            'is_in_stock' => 1,
-            'is_qty_decimal' => 0,
-            'show_default_notification_message' => 0,
-            'use_config_min_qty' => 1,
+            'is_in_stock' => true,
+            'is_qty_decimal' => false,
+            'show_default_notification_message' => false,
+            'use_config_min_qty' => true,
             'min_qty' => 1,
             'use_config_min_sale_qty' => 1,
             'min_sale_qty' => 1,
-            'use_config_max_sale_qty' => 1,
+            'use_config_max_sale_qty' => true,
             'max_sale_qty' => 999999999,
-            'use_config_backorders' => 1,
+            'use_config_backorders' => true,
             'backorders' => 1,
-            'use_config_notify_stock_qty' => 1,
+            'use_config_notify_stock_qty' => true,
             'notify_stock_qty' => 1,
-            'use_config_qty_increments' => 1,
+            'use_config_qty_increments' => true,
             'qty_increments' => 1,
-            'use_config_enable_qty_inc' => 1,
-            'enable_qty_increments' => 0,
-            'use_config_manage_stock' => 1,
-            'manage_stock' => 1,
+            'use_config_enable_qty_inc' => true,
+            'enable_qty_increments' => false,
+            'use_config_manage_stock' => true,
+            'manage_stock' => true,
             'low_stock_date' => '',
-            'is_decimal_divided' => 0,
+            'is_decimal_divided' => false,
             'stock_status_changed_auto' => 0,
         ]);
 
-        $itemId = wait($this->client->updateStockItem('product-123', ['stockItem' => ['item_id' => 1, 'qty' => '10']]));
+        $itemId = wait($this->client->updateStockItem(
+            'product-123',
+            [
+                'stockItem' => [
+                    'item_id' => 1,
+                    'qty' => 10,
+                    'is_in_stock' => true,
+                    'is_qty_decimal' => false,
+                    'show_default_notification_message' => false,
+                    'use_config_min_qty' => true,
+                    'min_qty' => 1,
+                    'use_config_min_sale_qty' => 1,
+                    'min_sale_qty' => 1,
+                    'use_config_max_sale_qty' => true,
+                    'max_sale_qty' => 999999999,
+                    'use_config_backorders' => true,
+                    'backorders' => 1,
+                    'use_config_notify_stock_qty' => true,
+                    'notify_stock_qty' => 1,
+                    'use_config_qty_increments' => true,
+                    'qty_increments' => 1,
+                    'use_config_enable_qty_inc' => true,
+                    'enable_qty_increments' => false,
+                    'use_config_manage_stock' => true,
+                    'manage_stock' => true,
+                    'low_stock_date' => '',
+                    'is_decimal_divided' => false,
+                    'stock_status_changed_auto' => 0,
+                ]
+            ]
+        ));
 
         $this->assertCount(1, Routes::$stockItems);
         $this->assertEquals(1, $itemId);
@@ -1258,8 +1287,7 @@ class ApiClientTest extends TestCase
             'baseUrl' => 'http://my-url',
             'accessToken' => 'access-token-for-esb-integration',
         ];
-        $schemaJson = file_get_contents(self::MAGENTO_SCHEMA_JSON_FILE);
-        $inMemoryMagento = new Server($schemaJson, new Routes());
+        $inMemoryMagento = new Server(realpath(self::MAGENTO_SCHEMA_JSON_FILE), new Routes());
         $fakeClient = new HttpClient($inMemoryMagento);
         $client = new ApiClient($fakeClient, $configWithAccessToken);
 
