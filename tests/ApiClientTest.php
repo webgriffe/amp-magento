@@ -149,7 +149,8 @@ class ApiClientTest extends TestCase
             'product' => [
                 'sku' => 'SKU-123',
                 'name' => 'Product Name',
-                'price' => 10
+                'price' => 10,
+                'weight' => 1.5,
             ]
         ];
         $createdProduct = wait($this->client->createProduct($productData));
@@ -158,6 +159,7 @@ class ApiClientTest extends TestCase
         $this->assertEquals('SKU-123', $createdProduct['sku']);
         $this->assertEquals('Product Name', $createdProduct['name']);
         $this->assertEquals(10, $createdProduct['price']);
+        $this->assertEquals(1.5, $createdProduct['weight']);
     }
 
     public function testShouldThrowExceptionCreatingProductWithoutMandatoryData()
