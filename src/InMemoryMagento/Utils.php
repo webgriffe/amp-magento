@@ -100,84 +100,78 @@ trait Utils
         if (empty($parsedQuery['searchCriteria']) || empty($parsedQuery['searchCriteria']['filterGroups'])) {
             $responseSearchCriteria = new \stdClass();
             $responseSearchCriteria->filter_groups = [];
-            return new ResponseStub(
-                200,
-                json_encode(
-                    [
-                        'items' => array_values($data),
-                        'search_criteria' => $responseSearchCriteria,
-                        'total_count' => \count($data)
-                    ]
-                )
-            );
+            return new ResponseStub(200, self::createSearchResponse($data, $responseSearchCriteria));
         }
 
         foreach ($parsedQuery['searchCriteria']['filterGroups'] as $filterGroup) {
             $groupData = [];
             foreach ($filterGroup['filters'] as $filter) {
                 //Filters are in OR between each other
-                $singleFilterData = array_filter($data, function (\stdClass $element) use ($filter) {
-                    $field = $filter['field'];
-                    $actualValue = $element->{$field} ?? null;
+                $singleFilterData = array_filter(
+                    $data,
+                    function (\stdClass $element) use ($filter) {
+                        $field = $filter['field'];
+                        $actualValue = $element->{$field} ?? null;
 
-                    if (null === $actualValue) {
-                        if (property_exists($element, 'extension_attributes')) {
-                            $extensionAttributes = $element->extension_attributes;
-                            if (property_exists($extensionAttributes, $field)) {
-                                $actualValue = $extensionAttributes->{$field};
+                        if (null === $actualValue) {
+                            if (property_exists($element, 'extension_attributes')) {
+                                $extensionAttributes = $element->extension_attributes;
+                                if (property_exists($extensionAttributes, $field)) {
+                                    $actualValue = $extensionAttributes->{$field};
+                                }
+                            }
+
+                            if (property_exists($element, 'custom_attributes') && $element->custom_attributes) {
+                                $customAttributes = $element->custom_attributes;
+                                $actualValue = array_reduce(
+                                    $customAttributes,
+                                    function ($carry, $customAttribute) use ($field) {
+                                        if ($customAttribute->attribute_code === $field) {
+                                            return $customAttribute->value;
+                                        }
+                                        return $carry;
+                                    }
+                                );
                             }
                         }
 
-                        if (property_exists($element, 'custom_attributes') && $element->custom_attributes) {
-                            $customAttributes = $element->custom_attributes;
-                            $actualValue = array_reduce(
-                                $customAttributes,
-                                function ($carry, $customAttribute) use ($field) {
-                                    if ($customAttribute->attribute_code === $field) {
-                                        return $customAttribute->value;
-                                    }
-                                    return $carry;
-                                }
-                            );
+                        if (empty($filter['conditionType'])) {
+                            $filter['conditionType'] = 'eq';
+                        }
+
+                        switch ($filter['conditionType']) {
+                            case 'eq':
+                                return $actualValue == $filter['value'];
+                            case 'neq':
+                                return $actualValue != $filter['value'];
+                            case 'gt':
+                                return $actualValue > $filter['value'];
+                            case 'gteq':
+                                return $actualValue >= $filter['value'];
+                            case 'lt':
+                                return $actualValue < $filter['value'];
+                            case 'lteq':
+                                return $actualValue <= $filter['value'];
+                            case 'in':
+                                return in_array($actualValue, explode(',', $filter['value']));
+                            case 'nin':
+                                return !in_array($actualValue, explode(',', $filter['value']));
+                            case 'null':
+                                return is_null($actualValue);
+                            case 'notnull':
+                                return !is_null($actualValue);
+                            case 'like':
+                                //Implement this using a regex. Regex-quote the value and replace all % chars with .*
+                                $regexQuotedValue = preg_quote($filter['value'], '/');
+                                $regexQuotedValue = str_replace('%', '.*', $regexQuotedValue);
+
+                                //The like operation is case insensitive, so the regex must be as well
+                                return !is_null($actualValue) && preg_match("/{$regexQuotedValue}/i", $actualValue);
+                            default:
+                                throw new \Error(sprintf('Condition Type "%s" not supported', $filter['conditionType']));
                         }
                     }
-
-                    if (empty($filter['conditionType'])) {
-                        $filter['conditionType'] = 'eq';
-                    }
-
-                    switch ($filter['conditionType']) {
-                        case 'eq':
-                            return $actualValue == $filter['value'];
-                        case 'neq':
-                            return $actualValue != $filter['value'];
-                        case 'gt':
-                            return $actualValue > $filter['value'];
-                        case 'gteq':
-                            return $actualValue >= $filter['value'];
-                        case 'lt':
-                            return $actualValue < $filter['value'];
-                        case 'lteq':
-                            return $actualValue <= $filter['value'];
-                        case 'in':
-                            return in_array($actualValue, explode(',', $filter['value']));
-                        case 'nin':
-                            return !in_array($actualValue, explode(',', $filter['value']));
-                        case 'null':
-                            return is_null($actualValue);
-                        case 'notnull':
-                            return !is_null($actualValue);
-                        case 'like':
-                            //Implement this using a regex. Regex-quote the value and replace all % chars with .*
-                            $regexQuotedValue = preg_quote($filter['value'], '/');
-                            $regexQuotedValue = str_replace('%', '.*', $regexQuotedValue);
-
-                            //The like operation is case insensitive, so the regex must be as well
-                            return !is_null($actualValue) && preg_match("/{$regexQuotedValue}/i", $actualValue);
-                        default:
-                            throw new \Error(sprintf('Condition Type "%s" not supported', $filter['conditionType']));
-                    }
-                });
+                );
 
                 //+ operator preserves numeric keys, so duplicate values should not happen
                 $groupData += $singleFilterData;
@@ -190,16 +184,7 @@ trait Utils
         $responseSearchCriteria['filter_groups'] = $responseSearchCriteria['filterGroups'];
         unset($responseSearchCriteria['filterGroups']);
 
-        return new ResponseStub(
-            200,
-            json_encode(
-                [
-                    'items' => array_values($data),
-                    'search_criteria' => $responseSearchCriteria,
-                    'total_count' => \count($data)
-                ]
-            )
-        );
+        return new ResponseStub(200, self::createSearchResponse($data, $responseSearchCriteria));
     }
 
     /**
@@ -241,6 +226,36 @@ trait Utils
         } else {
             return new \stdClass();
         }
+    }
+
+    private static function buildProductResponse($productData): string
+    {
+        $data = clone $productData;
+        if (isset($data->media_gallery_entries)) {
+            $data->media_gallery_entries = array_values($data->media_gallery_entries);
+        }
+
+        return json_encode($data);
+    }
+
+    private static function createSearchResponse(array $data, $responseSearchCriteria): string
+    {
+        $products = [];
+        foreach ($data as $product) {
+            $clonedProduct = clone $product;
+            if (isset($clonedProduct->media_gallery_entries)) {
+                $clonedProduct->media_gallery_entries = array_values($clonedProduct->media_gallery_entries);
+            }
+            $products[] = $clonedProduct;
+        }
+
+        return json_encode(
+            [
+                'items' => $products,
+                'search_criteria' => $responseSearchCriteria,
+                'total_count' => \count($products)
+            ]
+        );
     }
 
     /**

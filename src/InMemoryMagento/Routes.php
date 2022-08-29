@@ -1027,14 +1027,4 @@ class Routes extends RouteCollector
 
         return $response;
     }
-
-    private static function buildProductResponse($productData): string
-    {
-        $data = clone $productData;
-        if (isset($data->media_gallery_entries)) {
-            $data->media_gallery_entries = array_values($data->media_gallery_entries);
-        }
-
-        return json_encode($data);
-    }
 }
