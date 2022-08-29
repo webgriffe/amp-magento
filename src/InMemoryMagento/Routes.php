@@ -161,7 +161,7 @@ class Routes extends RouteCollector
         }
         self::$products[$sku]->_stores->{$uriParams['storeCode']} = $product;
 
-        $response = new ResponseStub(200, json_encode(self::$products[$sku]));
+        $response = new ResponseStub(200, self::buildProductResponse(self::$products[$sku]));
 
         return $response;
     }
@@ -379,10 +379,10 @@ class Routes extends RouteCollector
         $sku      = $uriParams['sku'];
         $response = new ResponseStub(404, json_encode(['message' => 'Product not found.']));
 
-        //Sku search seems to be case insensitive in Magento
+        //Sku search seems to be case-insensitive in Magento
         foreach (self::$products as $key => $product) {
             if (strcasecmp((string)$key, $sku) === 0) {
-                return new ResponseStub(200, json_encode($product));
+                return new ResponseStub(200, self::buildProductResponse($product));
             }
         }
 
@@ -501,7 +501,7 @@ class Routes extends RouteCollector
 
         $product->id                   = random_int(1000, 10000);
         self::$products[$product->sku] = $product;
-        $response                      = new ResponseStub(200, json_encode($product));
+        $response                      = new ResponseStub(200, self::buildProductResponse($product));
 
         return $response;
     }
@@ -576,7 +576,7 @@ class Routes extends RouteCollector
         }
 
         self::$products[$sku] = ObjectMerger::merge(self::$products[$sku], $product);
-        $response             = new ResponseStub(200, json_encode(self::$products[$sku]));
+        $response             = new ResponseStub(200, self::buildProductResponse(self::$products[$sku]));
 
         return $response;
     }
@@ -1026,5 +1026,15 @@ class Routes extends RouteCollector
         }
 
         return $response;
+    }
+
+    private static function buildProductResponse($productData): string
+    {
+        $data = clone $productData;
+        if (isset($data->media_gallery_entries)) {
+            $data->media_gallery_entries = array_values($data->media_gallery_entries);
+        }
+
+        return json_encode($data);
     }
 }
