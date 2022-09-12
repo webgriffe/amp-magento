@@ -87,7 +87,7 @@ class ResponseStub implements ResponseInterface
      */
     public function getPreviousResponse()
     {
-       return null;
+        return null;
     }
 
     /**
@@ -177,7 +177,7 @@ class ResponseStub implements ResponseInterface
      */
     public function getMetaInfo(): MetaInfo
     {
-        return new MetaInfo(new ConnectionInfo('a local addres', 'a remote address'));
+        return new MetaInfo(new ConnectionInfo('TODO', 'TODO'));
     }
 
     /**
