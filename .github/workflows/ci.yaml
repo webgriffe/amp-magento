@@ -34,11 +34,20 @@ jobs:
             restore-keys: |
               ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
+      -   name: Check composer
+          run: composer validate
+
       -   name: Install dependencies
           run: composer install --no-interaction
 
       -   name: Composer Require Checker
           run: composer-require-checker
+
+      -   name: CS checks
+          run: vendor/bin/phpcs
+
+      -   name: php stan checks
+          run: vendor/bin/phpstan analyse --no-progress -l 5 src tests
 
       -   name: PHPUnit tests
           run: vendor/bin/phpunit tests
