@@ -20,7 +20,10 @@ jobs:
           uses: shivammathur/setup-php@v2
           with:
             php-version: "${{ matrix.php }}"
-            tools: "composer${{ matrix.composer }}, composer-require-checker${{ matrix.composer-require-checker }}"
+            tools: "composer, composer-require-checker"
+
+      -   name: Install composer require checker for php 7.3
+          run: composer -V
 
       -   name: Get Composer cache directory
           id: composer-cache
