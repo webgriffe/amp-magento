@@ -16,7 +16,7 @@
         "psr-4": {"Webgriffe\\AmpMagento\\Tests\\": "tests/"}
     },
     "require": {
-        "php": "~7.3.0|~7.4.0|~8.0.0",
+        "php": "~7.4.0|~8.0.0",
         "ext-json": "*",
         "ext-xml": "*",
         "amphp/amp": "^2.1",
