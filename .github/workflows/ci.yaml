@@ -41,6 +41,7 @@ jobs:
           run: composer install --no-interaction
 
       -   name: Composer Require Checker
+          if: ${{ matrix.php != '7.3' }}
           run: composer-require-checker
 
       -   name: CS checks
