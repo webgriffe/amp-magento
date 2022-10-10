@@ -168,7 +168,12 @@ trait Utils
                                 //The like operation is case insensitive, so the regex must be as well
                                 return !is_null($actualValue) && preg_match("/{$regexQuotedValue}/i", $actualValue);
                             default:
-                                throw new \Error(sprintf('Condition Type "%s" not supported', $filter['conditionType']));
+                                throw new \Error(
+                                    sprintf(
+                                        'Condition Type "%s" not supported',
+                                        $filter['conditionType']
+                                    )
+                                );
                         }
                     }
                 );

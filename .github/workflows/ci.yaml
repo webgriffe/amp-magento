@@ -1,0 +1,63 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    name: "PHP ${{ matrix.php }}"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ 7.3, 7.4, 8.0 ]
+
+    steps:
+      -   uses: actions/checkout@v2
+
+      -   name: Setup PHP
+          uses: shivammathur/setup-php@v2
+          with:
+            php-version: "${{ matrix.php }}"
+            tools: "composer, composer-require-checker"
+
+      -   name: Get Composer cache directory
+          id: composer-cache
+          run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      -   name: Cache Composer
+          uses: actions/cache@v2
+          with:
+            path: ${{ steps.composer-cache.outputs.dir }}
+            key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json **/composer.lock') }}
+            restore-keys: |
+              ${{ runner.os }}-php-${{ matrix.php }}-composer-
+
+      -   name: Check composer
+          run: composer validate
+
+      -   name: Install dependencies
+          run: composer install --no-interaction
+
+      -   name: Composer Require Checker
+          if: ${{ matrix.php != '7.3' }}
+          run: composer-require-checker
+
+      -   name: CS checks
+          run: vendor/bin/phpcs
+
+      -   name: php stan checks
+          run: vendor/bin/phpstan analyse --no-progress -l 5 src tests
+
+      -   name: PHPUnit tests
+          run: vendor/bin/phpunit tests
+
+  roave_bc_check:
+    name: Roave BC Check
+    runs-on: ubuntu-latest
+
+    steps:
+      -   uses: actions/checkout@v2
+      -   name: Roave BC Check
+          uses: docker://nyholm/roave-bc-check-ga

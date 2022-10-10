@@ -135,8 +135,6 @@ final class Server
     }
 
     /**
-     * @param Request|string $uriOrRequest
-     *
      * @return Request
      * @throws HttpException
      */

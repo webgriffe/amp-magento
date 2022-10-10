@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Webgriffe\AmpMagento\InMemoryMagento;
 
+use Amp\Artax\ConnectionInfo;
 use Amp\Artax\MetaInfo;
 use Amp\Artax\Request;
 use Amp\Artax\Response as ResponseInterface;
@@ -63,7 +64,7 @@ class ResponseStub implements ResponseInterface
      */
     public function getRequest(): Request
     {
-        // TODO: Implement getRequest() method.
+        return new Request('TODO');
     }
 
     /**
@@ -76,7 +77,7 @@ class ResponseStub implements ResponseInterface
      */
     public function getOriginalRequest(): Request
     {
-        // TODO: Implement getOriginalRequest() method.
+        return new Request('TODO');
     }
 
     /**
@@ -86,7 +87,7 @@ class ResponseStub implements ResponseInterface
      */
     public function getPreviousResponse()
     {
-        // TODO: Implement getPreviousResponse() method.
+        return null;
     }
 
     /**
@@ -98,7 +99,7 @@ class ResponseStub implements ResponseInterface
      */
     public function hasHeader(string $field): bool
     {
-        // TODO: Implement hasHeader() method.
+        return false;
     }
 
     /**
@@ -176,7 +177,7 @@ class ResponseStub implements ResponseInterface
      */
     public function getMetaInfo(): MetaInfo
     {
-        // TODO: Implement getMetaInfo() method.
+        return new MetaInfo(new ConnectionInfo('TODO', 'TODO'));
     }
 
     /**

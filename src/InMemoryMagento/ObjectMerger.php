@@ -99,11 +99,14 @@ final class ObjectMerger
         }
     }
 
+
     /**
-     * @return array
+     * @param $value
+     * @param $result
+     * @return mixed
      * @throws \Exception
      */
-    private static function mergeProductAttributes($value, $result): array
+    private static function mergeProductAttributes($value, $result)
     {
         $attributeCode = (string)self::getValue($value, 'attribute_code');
 
