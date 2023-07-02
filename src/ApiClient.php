@@ -51,14 +51,16 @@ final class ApiClient
             $request = new Request($this->getAbsoluteUri('/V1/products/' . urlencode($sku)), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
-            if ($response->getStatus() === 200) {
-                return json_decode(yield $response->getBody(), true);
+            $variable_to_return = null;
+            switch ($response->getStatus()) {
+                case '200':
+                   $variable_to_return = json_decode(yield $response->getBody(), true);
+                    break;
             }
-            if ($response->getStatus() === 404) {
-                return null;
+            if (is_null($variable_to_return)) {
+                throw yield $this->unexpectedResponseException($request, $response);
             }
-
-            throw yield $this->unexpectedResponseException($request, $response);
+            return $variable_to_return;
         });
     }
 
