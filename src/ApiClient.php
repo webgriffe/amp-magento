@@ -10,8 +10,8 @@ use Amp\Artax\Response;
 use Amp\File;
 use Amp\Promise;
 use Amp\Success;
-use function Amp\call;
 use Webmozart\Assert\Assert;
+use function Amp\call;
 
 final class ApiClient
 {
@@ -391,19 +391,35 @@ final class ApiClient
      *
      * @return Promise
      */
-    public function getInvoices(string $createdAfter = null): Promise
+    public function getInvoices(?string $createdAfter = null, ?int $state = null): Promise
     {
-        return call(function () use ($createdAfter) {
+        return call(function () use ($createdAfter, $state) {
             $uri = '/V1/invoices?searchCriteria=[]';
+            $filters = [];
+
             if ($createdAfter) {
-                $uri = sprintf(
-                    '/V1/invoices' .
-                    '?searchCriteria[filterGroups][0][filters][0][field]=created_at' .
-                    '&searchCriteria[filterGroups][0][filters][0][value]=%s' .
-                    '&searchCriteria[filterGroups][0][filters][0][conditionType]=gt',
+                $filters[] = sprintf(
+                    'searchCriteria[filterGroups][%1$d][filters][0][field]=created_at' .
+                    '&searchCriteria[filterGroups][%1$d][filters][0][value]=%2$s' .
+                    '&searchCriteria[filterGroups][%1$d][filters][0][conditionType]=gt',
+                    count($filters),
                     urlencode($createdAfter)
                 );
             }
+            if ($state) {
+                $filters[] = sprintf(
+                    'searchCriteria[filterGroups][%1$d][filters][0][field]=state' .
+                    '&searchCriteria[filterGroups][%1$d][filters][0][value]=%2$s' .
+                    '&searchCriteria[filterGroups][%1$d][filters][0][conditionType]=eq',
+                    count($filters),
+                    $state
+                );
+            }
+
+            if (count($filters) > 0) {
+                $uri = sprintf('/V1/invoices?%s', join('&', $filters));
+            }
+
             $request = new Request($this->getAbsoluteUri($uri), 'GET');
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);

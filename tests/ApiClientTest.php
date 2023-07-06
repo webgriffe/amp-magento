@@ -451,7 +451,7 @@ class ApiClientTest extends TestCase
         $this->assertEquals([1], Routes::$products['PARENT-123']->extension_attributes->configurable_product_links);
     }
 
-    public function testShouldGetAllInvoicesIfNoDateIsNotSpecified()
+    public function testShouldGetAllInvoicesIfNoDateAndNoStateAreSpecified()
     {
         Routes::$invoices = [
             $this->object([
@@ -460,6 +460,7 @@ class ApiClientTest extends TestCase
                 'items' => [
                     ['sku' => 'ABC', 'order_item_id' => 10, 'qty' => 1]
                 ],
+                'state' => 1,
                 'created_at' => '2014-12-12 00:00:00'
             ]),
             $this->object([
@@ -468,6 +469,7 @@ class ApiClientTest extends TestCase
                 'items' => [
                     ['sku' => 'DEF', 'order_item_id' => 20, 'qty' => 1]
                 ],
+                'state' => 1,
                 'created_at' => '2015-12-12 00:00:00'
             ]),
             $this->object([
@@ -494,6 +496,7 @@ class ApiClientTest extends TestCase
                 'items' => [
                     ['sku' => 'ABC', 'order_item_id' => 10, 'qty' => 1]
                 ],
+                'state' => 2,
                 'created_at' => '2014-12-12 00:00:00'
             ]),
             $this->object([
@@ -502,6 +505,7 @@ class ApiClientTest extends TestCase
                 'items' => [
                     ['sku' => 'DEF', 'order_item_id' => 20, 'qty' => 1]
                 ],
+                'state' => 2,
                 'created_at' => '2015-12-12 00:00:00'
             ]),
             $this->object([
@@ -510,6 +514,7 @@ class ApiClientTest extends TestCase
                 'items' => [
                     ['sku' => 'GHI', 'order_item_id' => 30, 'qty' => 1]
                 ],
+                'state' => 2,
                 'created_at' => '2016-12-12 00:00:00'
             ])
         ];
@@ -517,6 +522,82 @@ class ApiClientTest extends TestCase
         $invoices = wait($this->client->getInvoices('2016-01-01 00:00:00'));
 
         $this->assertCount(1, $invoices['items']);
+    }
+
+    public function testShouldGetInvoicesWithAGivenState()
+    {
+        Routes::$invoices = [
+            $this->object([
+                'order_id' => 123,
+                'total_qty' => 1,
+                'items' => [
+                    ['sku' => 'ABC', 'order_item_id' => 10, 'qty' => 1]
+                ],
+                'state' => 1,
+                'created_at' => '2014-12-12 00:00:00'
+            ]),
+            $this->object([
+                'order_id' => 456,
+                'total_qty' => 1,
+                'items' => [
+                    ['sku' => 'DEF', 'order_item_id' => 20, 'qty' => 1]
+                ],
+                'state' => 2,
+                'created_at' => '2015-12-12 00:00:00'
+            ]),
+            $this->object([
+                'order_id' => 789,
+                'total_qty' => 1,
+                'items' => [
+                    ['sku' => 'GHI', 'order_item_id' => 30, 'qty' => 1]
+                ],
+                'state' => 1,
+                'created_at' => '2016-12-12 00:00:00'
+            ])
+        ];
+
+        $invoices = wait($this->client->getInvoices(null, 2));
+
+        $this->assertCount(1, $invoices['items']);
+        $this->assertEquals(456, $invoices['items'][0]['order_id']);
+    }
+
+    public function testShouldGetInvoicesWithAGivenStateAfterAGivenDate()
+    {
+        Routes::$invoices = [
+            $this->object([
+                'order_id' => 123,
+                'total_qty' => 1,
+                'items' => [
+                    ['sku' => 'ABC', 'order_item_id' => 10, 'qty' => 1]
+                ],
+                'state' => 1,
+                'created_at' => '2014-12-12 00:00:00'
+            ]),
+            $this->object([
+                'order_id' => 456,
+                'total_qty' => 1,
+                'items' => [
+                    ['sku' => 'DEF', 'order_item_id' => 20, 'qty' => 1]
+                ],
+                'state' => 2,
+                'created_at' => '2015-12-12 00:00:00'
+            ]),
+            $this->object([
+                'order_id' => 789,
+                'total_qty' => 1,
+                'items' => [
+                    ['sku' => 'GHI', 'order_item_id' => 30, 'qty' => 1]
+                ],
+                'state' => 2,
+                'created_at' => '2016-12-12 00:00:00'
+            ])
+        ];
+
+        $invoices = wait($this->client->getInvoices('2016-01-01 00:00:00', 2));
+
+        $this->assertCount(1, $invoices['items']);
+        $this->assertEquals(789, $invoices['items'][0]['order_id']);
     }
 
     public function testShouldGetAllOrdersIfNoFilterIsSpecified()
@@ -773,6 +854,7 @@ class ApiClientTest extends TestCase
             '100' => $this->object(
                 [
                     'order_id' => '0000123',
+                    'state' => 2
                 ]
             ),
         ];
