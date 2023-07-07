@@ -56,8 +56,9 @@ jobs:
   roave_bc_check:
     name: Roave BC Check
     runs-on: ubuntu-latest
-
     steps:
       -   uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
       -   name: Roave BC Check
           uses: docker://nyholm/roave-bc-check-ga
