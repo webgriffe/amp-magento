@@ -61,4 +61,5 @@ jobs:
           with:
             fetch-depth: 0
       -   name: Roave BC Check
-          uses: docker://nyholm/roave-bc-check-ga@v8
+          container:
+            image: nyholm/roave-bc-check-ga@master
