@@ -34,7 +34,10 @@ final class ObjectMerger
         if ($elem2 instanceof \stdClass) {
             foreach (array_keys(get_object_vars($elem2)) as $fieldName) {
                 if ($fieldName === 'custom_attributes') {
-                    $result->{$fieldName} = self::mergeCustomAttributes($result->{$fieldName}, $elem2->{$fieldName});
+                    $result->{$fieldName} = self::mergeCustomAttributes(
+                        $result->{$fieldName} ?? [],
+                        $elem2->{$fieldName}
+                    );
                     continue;
                 }
                 if ($fieldName === 'tier_prices') {
