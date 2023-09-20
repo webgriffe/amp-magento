@@ -6,18 +6,11 @@ namespace Webgriffe\AmpMagento\InMemoryMagento;
 use Amp\Artax\HttpException;
 use Amp\Artax\Request;
 use Amp\Artax\Response;
-use Amp\Promise;
 use FastRoute;
 use FastRoute\Dispatcher\GroupCountBased;
-use FR3D\SwaggerAssertions\JsonSchema\RefResolver;
-use FR3D\SwaggerAssertions\PhpUnit\AssertsTrait;
-use FR3D\SwaggerAssertions\SchemaManager;
-use JsonSchema\Constraints\Factory;
-use PHPUnit\Framework\ExpectationFailedException;
 
 final class Server
 {
-    use AssertsTrait;
     use Utils;
 
     /** @var array */
@@ -32,28 +25,10 @@ final class Server
     /**
      * Server constructor.
      *
-     * @param string|array $swaggerSchemaPaths
      * @param Routes       $inMemoryMagentoRoutes
      */
-    public function __construct($swaggerSchemaPaths, Routes $inMemoryMagentoRoutes)
+    public function __construct(Routes $inMemoryMagentoRoutes)
     {
-        if (!is_array($swaggerSchemaPaths)) {
-            $swaggerSchemaPaths = ['all' => $swaggerSchemaPaths];
-        }
-
-        array_walk(
-            $swaggerSchemaPaths,
-            function ($schemaPath, $storeCode) {
-                //It is necessary to manually resolve all refs before initializing the SchemaManager, otherwise
-                //infinite loops result in case of circular references
-                $factory = new Factory();
-                $storage = $factory->getSchemaStorage();
-                $storage->addSchema('temp', $factory->getUriRetriever()->retrieve('file://'.$schemaPath));
-                $this->schema[$storeCode] = new SchemaManager($storage->getSchema('temp'));
-            }
-        );
-
-        $this->mageVersion = $this->getMageVersionFromAnyOfTheSchemas($swaggerSchemaPaths);
         $this->dispatcher  = new GroupCountBased($inMemoryMagentoRoutes->getData());
     }
 
@@ -66,30 +41,7 @@ final class Server
      */
     public function processRequest($uriOrRequest): Response
     {
-        $request = $this->normalizeRequest($uriOrRequest);
-
-        try {
-            $this->validateRequestAgainstSchema($request);
-        } catch (ExpectationFailedException $error) {
-            $response = new ResponseStub(
-                400,
-                json_encode(
-                    [
-                        'message' => $error->getMessage(),
-                        'code'    => $error->getCode(),
-                        'trace'   => $error->getTraceAsString()
-                    ]
-                )
-            );
-
-            return $response;
-        }
-
-        $response = $this->doProcessRequest($request);
-
-        $this->validateResponseAgainstSchema($request, $response);
-
-        return $response;
+        return $this->doProcessRequest($this->normalizeRequest($uriOrRequest));
     }
 
     /**
@@ -131,7 +83,7 @@ final class Server
         $handler = $routeInfo[1];
         $vars    = $routeInfo[2];
 
-        return $handler($request, $vars, $this->mageVersion);
+        return $handler($request, $vars);
     }
 
     /**
@@ -150,92 +102,5 @@ final class Server
         throw new HttpException(
             'Request must be a valid HTTP URI or Amp\Artax\Request instance'
         );
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @throws \Throwable
-     */
-    private function validateRequestAgainstSchema(Request $request): void
-    {
-        $uri = self::buildUriFromString($request->getUri());
-
-        // check if we have in our schema /rest/[store-code]/V1
-        // @TODO: maybe we need a better solution
-        $storeCode = explode("/", $uri->getPath());
-        $storeCode = $storeCode[2];
-
-        if (!isset($this->schema[$storeCode])) {
-            return;
-        }
-
-        $this->assertRequestHeadersMatch(
-            $request->getHeaders(),
-            $this->schema[$storeCode],
-            $uri->getPath(),
-            $request->getMethod()
-        );
-        $this->assertRequestQueryMatch(
-            $uri->getAllQueryParameters(),
-            $this->schema[$storeCode],
-            $uri->getPath(),
-            $request->getMethod()
-        );
-        if (in_array(strtoupper($request->getMethod()), ['PUT', 'POST'])) {
-            $this->assertRequestBodyMatch(
-                self::readDecodedRequestBody($request),
-                $this->schema[$storeCode],
-                $uri->getPath(),
-                $request->getMethod()
-            );
-        }
-    }
-
-    /**
-     * @param Request  $request
-     * @param Response $response
-     *
-     * @throws \Throwable
-     */
-    private function validateResponseAgainstSchema(Request $request, Response $response): void
-    {
-        $uri = self::buildUriFromString($request->getUri());
-
-        // check if we have in our schema /rest/[store-code]/V1
-        // @TODO: maybe we need a better solution
-        $storeCode = explode("/", $uri->getPath());
-        $storeCode = $storeCode[2];
-
-        if (!isset($this->schema[$storeCode])) {
-            return;
-        }
-
-        $responseStatus = $response->getStatus();
-        $responseBody   = Promise\wait($response->getBody()->read());
-        $this->assertResponseHeadersMatch(
-            $response->getHeaders(),
-            $this->schema[$storeCode],
-            $uri->getPath(),
-            $request->getMethod(),
-            $responseStatus
-        );
-        $this->assertResponseBodyMatch(
-            json_decode($responseBody, false),
-            $this->schema[$storeCode],
-            $uri->getPath(),
-            $request->getMethod(),
-            $responseStatus
-        );
-    }
-
-    /**
-     * @param array $swaggerSchemaPaths
-     * @return string
-     */
-    private function getMageVersionFromAnyOfTheSchemas($swaggerSchemaPaths)
-    {
-        $anySwaggerSchema = json_decode(file_get_contents(array_values($swaggerSchemaPaths)[0]), false);
-        return $anySwaggerSchema->info->version;
     }
 }

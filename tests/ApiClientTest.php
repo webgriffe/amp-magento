@@ -14,8 +14,6 @@ class ApiClientTest extends TestCase
 {
     use Utils;
 
-    public const MAGENTO_SCHEMA_JSON_FILE = __DIR__ . '/mage24-schema.json';
-
     /** @var ApiClient */
     private $client;
 
@@ -26,7 +24,7 @@ class ApiClientTest extends TestCase
             'username' => 'admin',
             'password' => 'password123'
         ];
-        $inMemoryMagento = new Server(realpath(self::MAGENTO_SCHEMA_JSON_FILE), new Routes());
+        $inMemoryMagento = new Server(new Routes());
         $fakeClient = new HttpClient($inMemoryMagento);
         $this->client = new ApiClient($fakeClient, $config);
     }
@@ -1371,7 +1369,7 @@ class ApiClientTest extends TestCase
             'baseUrl' => 'http://my-url',
             'accessToken' => 'access-token-for-esb-integration',
         ];
-        $inMemoryMagento = new Server(realpath(self::MAGENTO_SCHEMA_JSON_FILE), new Routes());
+        $inMemoryMagento = new Server(new Routes());
         $fakeClient = new HttpClient($inMemoryMagento);
         $client = new ApiClient($fakeClient, $configWithAccessToken);
 

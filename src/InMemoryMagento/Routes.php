@@ -588,11 +588,8 @@ class Routes extends RouteCollector
      * @return ResponseStub
      * @throws \Throwable
      */
-    public static function postProductsAttributesOptionsHandler(
-        Request $request,
-        array $uriParams,
-        string $mageVersion
-    ): ResponseStub {
+    public static function postProductsAttributesOptionsHandler(Request $request, array $uriParams): ResponseStub
+    {
         if ($request->getHeader('Authorization') !== sprintf('Bearer %s', self::$accessToken)) {
             return new ResponseStub(401, json_encode(['message' => 'Unauthorized.']));
         }
@@ -630,11 +627,7 @@ class Routes extends RouteCollector
                 }
             }
 
-            $responseBody                                       = true;
-            if ($mageVersion !== '2.2') {
-                $responseBody = sprintf('id_%s', $option->value);
-            }
-            $response = new ResponseStub(200, json_encode($responseBody));
+            $response = new ResponseStub(200, json_encode(true));
         }
 
         return $response;
