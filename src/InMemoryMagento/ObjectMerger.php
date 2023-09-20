@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Webgriffe\AmpMagento\InMemoryMagento;
 
-use Webmozart\Assert\Assert;
-
 final class ObjectMerger
 {
     /**
@@ -35,17 +33,20 @@ final class ObjectMerger
 
         if ($elem2 instanceof \stdClass) {
             foreach (array_keys(get_object_vars($elem2)) as $fieldName) {
+                if ($fieldName === 'custom_attributes') {
+                    $result->{$fieldName} = self::mergeCustomAttributes($result->{$fieldName}, $elem2->{$fieldName});
+                    continue;
+                }
+                if ($fieldName === 'tier_prices') {
+                    $result->{$fieldName} = $elem2->{$fieldName};
+                    continue;
+                }
+
                 self::mergeValue($result, $fieldName, $elem2->{$fieldName});
             }
         } elseif (is_array($elem2)) {
             foreach ($elem2 as $key => $value) {
-                if (self::hasFieldOrKey($value, 'attribute_code')) {
-                    $result = self::mergeProductAttributes($value, $result);
-                } elseif (self::hasFieldOrKey($value, 'customer_group_id') && self::hasFieldOrKey($value, 'qty')) {
-                    $result = self::mergeTierPrices($value, $result);
-                } else {
-                    self::mergeValue($result, $key, $value);
-                }
+                self::mergeValue($result, $key, $value);
             }
         } else {
             //Non-object and non-array values. Can't merge, and in this case we must give precedence to the second
@@ -77,73 +78,22 @@ final class ObjectMerger
         }
     }
 
-    private static function hasFieldOrKey($elem, $key)
-    {
-        if ($elem instanceof \stdClass) {
-            return isset($elem->{$key});
-        } elseif (is_array($elem)) {
-            return array_key_exists($key, $elem);
-        } else {
-            return false;
-        }
-    }
-
-    private static function getValue($elem, $key)
-    {
-        if ($elem instanceof \stdClass) {
-            return $elem->{$key};
-        } elseif (is_array($elem)) {
-            return $elem[$key];
-        } else {
-            throw new \Exception("Can't access a field of a scalar value");
-        }
-    }
-
-
     /**
-     * @param $value
-     * @param $result
-     * @return mixed
      * @throws \Exception
      */
-    private static function mergeProductAttributes($value, $result)
+    private static function mergeCustomAttributes(array $existing, array $new): array
     {
-        $attributeCode = (string)self::getValue($value, 'attribute_code');
-
-        if (is_array($result)) {
-            foreach ($result as $key1 => $value1) {
-                if ((string)self::getValue($value1, 'attribute_code') === $attributeCode) {
-                    $result[$key1] = $value;
-                    return $result;
-                }
-            }
-
-            $result[] = $value;
-            return $result;
-        }
-        return $result;
-    }
-
-    /**
-     * @return mixed
-     * @throws \Exception
-     */
-    private static function mergeTierPrices($value, $result)
-    {
-        $customerGroupId = (int)self::getValue($value, 'customer_group_id');
-        $qty = (int)self::getValue($value, 'qty');
-        if (is_array($result)) {
-            foreach ($result as $key1 => $value1) {
-                if ((int)self::getValue($value1, 'customer_group_id') === $customerGroupId &&
-                    (int)self::getValue($value1, 'qty') == $qty) {
-                    $result[$key1] = $value;
-                    return $result;
-                }
-            }
-
-            $result[] = $value;
-            return $result;
-        }
-        return $result;
+        return array_values(
+            array_merge(
+                array_combine(
+                    array_column($existing, 'attribute_code'),
+                    $existing
+                ),
+                array_combine(
+                    array_column($new, 'attribute_code'),
+                    $new
+                )
+            )
+        );
     }
 }
