@@ -66,6 +66,32 @@ class ObjectMergerTest extends TestCase
         );
     }
 
+    public function testMergeCustomAttributesWithNoCustomAttributesOnFirstObject(): void
+    {
+        $merge = ObjectMerger::merge(
+            $this->object(
+                [
+                    'sku' => 'sku1'
+                ]
+            ),
+            $this->object(
+                [
+                    'sku' => 'sku1',
+                    'custom_attributes' => [
+                        ['attribute_code' => 'description', 'value' => ''],
+                    ]
+                ]
+            )
+        );
+
+        $this->assertEquals(
+            [
+                $this->object(['attribute_code' => 'description', 'value' => '']),
+            ],
+            $merge->custom_attributes
+        );
+    }
+
     public function testMergeCustomerGroupTierPrices(): void
     {
         $merge = ObjectMerger::merge(
