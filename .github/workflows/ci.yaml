@@ -56,9 +56,7 @@ jobs:
           run: vendor/bin/phpunit tests
 
       -   name: Install roave/backward-compatibility-check.
-          if: ${{ matrix.php != '7.3' }}
           run: composer require --dev --update-with-dependencies roave/backward-compatibility-check
 
       -   name: Run roave/backward-compatibility-check.
-          if: ${{ matrix.php != '7.3' }}
           run: vendor/bin/roave-backward-compatibility-check --from=v3.0.0-ALPHA.2 --format=github-actions  #TODO: When version 3 becomes stable, remove the --from parameter!
