@@ -25,7 +25,7 @@ final class Server
     /**
      * Server constructor.
      *
-     * @param Routes       $inMemoryMagentoRoutes
+     * @param Routes $inMemoryMagentoRoutes
      */
     public function __construct(Routes $inMemoryMagentoRoutes)
     {
