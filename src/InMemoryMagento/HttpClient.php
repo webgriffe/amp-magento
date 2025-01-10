@@ -27,7 +27,7 @@ final class HttpClient implements DelegateHttpClient
      * @throws HttpException
      * @throws \Throwable
      */
-    public function request($uriOrRequest, CancellationToken $cancellation = null): Promise
+    public function request($uriOrRequest, ?CancellationToken $cancellation = null): Promise
     {
         return new Success($this->magento->processRequest($uriOrRequest));
     }

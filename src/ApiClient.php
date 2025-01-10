@@ -7,6 +7,7 @@ use Amp\Http\Client\DelegateHttpClient as HttpClient;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\File;
+use Amp\NullCancellationToken;
 use Amp\Promise;
 use Amp\Success;
 use Webmozart\Assert\Assert;
@@ -747,7 +748,7 @@ final class ApiClient
                 ['username' => $this->config['username'], 'password' => $this->config['password']]
             );
             /** @var Response $response */
-            $response = yield $this->client->request($request);
+            $response = yield $this->client->request($request, new NullCancellationToken());
             if ($response->getStatus() === 200) {
                 $this->token = json_decode(yield $response->getBody(), true);
                 return;
@@ -788,13 +789,13 @@ final class ApiClient
             $request->setHeader('Authorization', 'Bearer ' . $this->token);
             $request->setTransferTimeout($config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
             /** @var Response $response */
-            $response = yield $this->client->request($request);
+            $response = yield $this->client->request($request, new NullCancellationToken());
             // TODO: Improvement: re-login attempt should be unit tested
             if (!$justLoggedIn && $response->getStatus() === 401) {
                 yield $this->login();
                 $request->setHeader('Authorization', 'Bearer ' . $this->token);
                 $request->setTransferTimeout($config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
-                $response = yield $this->client->request($request);
+                $response = yield $this->client->request($request, new NullCancellationToken());
             }
             return $response;
         });
