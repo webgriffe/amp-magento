@@ -750,7 +750,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->client->request($request, new NullCancellationToken());
             if ($response->getStatus() === 200) {
-                $this->token = json_decode(yield $response->getBody(), true);
+                $this->token = json_decode(yield from $response->getBody(), true);
                 return;
             }
 

@@ -7,6 +7,7 @@ use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
 use Amp\CancellationToken;
 use Amp\Http\Client\DelegateHttpClient;
+use Amp\Http\Client\Response;
 use Amp\Promise;
 use Amp\Success;
 
@@ -24,6 +25,7 @@ final class HttpClient implements DelegateHttpClient
      * @param Request|string $uriOrRequest
      * @param CancellationToken|null $cancellation
      *
+     * @return Promise<Response>
      * @throws HttpException
      * @throws \Throwable
      */
