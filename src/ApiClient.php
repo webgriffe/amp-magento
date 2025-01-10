@@ -3,10 +3,9 @@ declare(strict_types=1);
 
 namespace Webgriffe\AmpMagento;
 
-use Amp\Artax\Client as HttpClient;
-use Amp\Artax\DefaultClient;
-use Amp\Artax\Request;
-use Amp\Artax\Response;
+use Amp\Http\Client\DelegateHttpClient as HttpClient;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
 use Amp\File;
 use Amp\Promise;
 use Amp\Success;
@@ -29,12 +28,6 @@ final class ApiClient
     public function __construct(HttpClient $client, array $config)
     {
         $this->client = $client;
-        if ($this->client instanceof DefaultClient) {
-            $this->client->setOption(
-                HttpClient::OP_TRANSFER_TIMEOUT,
-                $config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT
-            );
-        }
         $this->config = $config;
     }
 
@@ -792,13 +785,15 @@ final class ApiClient
                 yield $this->login();
                 $justLoggedIn = true;
             }
-            $request = $request->withHeader('Authorization', 'Bearer ' . $this->token);
+            $request->setHeader('Authorization', 'Bearer ' . $this->token);
+            $request->setTransferTimeout($config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
             /** @var Response $response */
             $response = yield $this->client->request($request);
             // TODO: Improvement: re-login attempt should be unit tested
             if (!$justLoggedIn && $response->getStatus() === 401) {
                 yield $this->login();
-                $request = $request->withHeader('Authorization', 'Bearer ' . $this->token);
+                $request->setHeader('Authorization', 'Bearer ' . $this->token);
+                $request->setTransferTimeout($config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
                 $response = yield $this->client->request($request);
             }
             return $response;
@@ -853,11 +848,11 @@ final class ApiClient
     private function createJsonRequest(string $uri, string $method, array $data = null): Request
     {
         // TODO: Maybe it could be removed: both product payload and products description in file are converted to utf-8
-        $request = (new Request($uri, $method))
-            ->withHeader('Content-Type', 'application/json');
+        $request = new Request($uri, $method);
+        $request->setHeader('Content-Type', 'application/json');
         if ($data) {
             array_walk_recursive($data, [$this, 'detectAndCleanUtf8']);
-            $request = $request->withBody(json_encode($data));
+            $request->setBody(json_encode($data));
         }
         return $request;
     }

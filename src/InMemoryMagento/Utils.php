@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace Webgriffe\AmpMagento\InMemoryMagento;
 
-use Amp\Artax\HttpException;
-use Amp\Artax\Request;
+use Amp\ByteStream\InMemoryStream;
+use Amp\Http\Client\HttpException;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
 use Amp\Uri\InvalidUriException;
 use Amp\Uri\Uri;
 use Amp\Promise;
@@ -36,14 +38,12 @@ trait Utils
      * @param array $data
      * @param string $query
      * @param string|null $storeCode
-     *
-     * @return ResponseStub
      */
     private static function createSearchCriteriaResponse(
         array $data,
         string $query,
         string $storeCode = null
-    ): ResponseStub {
+    ): Response {
         $parsedQuery = [];
         parse_str($query, $parsedQuery);
         if (!array_key_exists('searchCriteria', $parsedQuery)) {
@@ -100,7 +100,7 @@ trait Utils
         if (empty($parsedQuery['searchCriteria']) || empty($parsedQuery['searchCriteria']['filterGroups'])) {
             $responseSearchCriteria = new \stdClass();
             $responseSearchCriteria->filter_groups = [];
-            return new ResponseStub(200, self::createSearchResponse($data, $responseSearchCriteria));
+            return self::buildResponse(200, self::createSearchResponse($data, $responseSearchCriteria));
         }
 
         foreach ($parsedQuery['searchCriteria']['filterGroups'] as $filterGroup) {
@@ -189,7 +189,7 @@ trait Utils
         $responseSearchCriteria['filter_groups'] = $responseSearchCriteria['filterGroups'];
         unset($responseSearchCriteria['filterGroups']);
 
-        return new ResponseStub(200, self::createSearchResponse($data, $responseSearchCriteria));
+        return self::buildResponse(200, self::createSearchResponse($data, $responseSearchCriteria));
     }
 
     /**
@@ -270,5 +270,17 @@ trait Utils
     private function object(array $array): \stdClass
     {
         return json_decode(json_encode($array));
+    }
+
+    private static function buildResponse(int $status, string $body = null): Response
+    {
+        return new Response(
+            '1.1',
+            $status,
+            (string) $status,
+            [],
+            new InMemoryStream($body),
+            new Request('TODO')
+        );
     }
 }

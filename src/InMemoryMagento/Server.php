@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Webgriffe\AmpMagento\InMemoryMagento;
 
-use Amp\Artax\HttpException;
-use Amp\Artax\Request;
-use Amp\Artax\Response;
+use Amp\Http\Client\HttpException;
+use Amp\Http\Client\Request;
+use Amp\Http\Client\Response;
 use FastRoute;
 use FastRoute\Dispatcher\GroupCountBased;
 
@@ -55,14 +55,14 @@ final class Server
     {
         $routeInfo = $this->dispatcher->dispatch(
             $request->getMethod(),
-            self::buildUriFromString($request->getUri())->getPath()
+            $request->getUri()->getPath()
         );
         if ($routeInfo[0] === FastRoute\Dispatcher::NOT_FOUND) {
             throw new \Error(
                 sprintf(
                     'This fake has no idea how to handle the request "%s %s".',
                     $request->getMethod(),
-                    self::buildUriFromString($request->getUri())->getPath()
+                    $request->getUri()->getPath()
                 )
             );
         }
@@ -72,7 +72,7 @@ final class Server
                 sprintf(
                     'Method "%s" is not allowed for URI "%s", allowed methods are "%s".',
                     $request->getMethod(),
-                    self::buildUriFromString($request->getUri())->getPath(),
+                    $request->getUri()->getPath(),
                     implode(', ', $allowedMethods)
                 )
             );
