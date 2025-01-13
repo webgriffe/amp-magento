@@ -822,8 +822,8 @@ final class ApiClient
                 $id = bin2hex(random_bytes(4));
                 $requestBodyFile = rtrim(sys_get_temp_dir(), '/') . '/' . date('Ymd') . '-' . $id . '-request.log';
                 $responseBodyFile = rtrim(sys_get_temp_dir(), '/') . '/' . date('Ymd') . '-' . $id . '-response.log';
-                yield File\put($requestBodyFile, $requestBody);
-                yield File\put($responseBodyFile, $responseBody);
+                yield File\write($requestBodyFile, $requestBody);
+                yield File\write($responseBodyFile, $responseBody);
                 return new \RuntimeException(
                     sprintf(
                         'Unexpected response status (%s) with error message "%s" received from Magento API request ' .
