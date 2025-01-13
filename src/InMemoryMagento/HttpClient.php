@@ -25,6 +25,7 @@ final class HttpClient implements DelegateHttpClient
      * @param Request|string $uriOrRequest
      * @param CancellationToken|null $cancellation
      *
+     *
      * @return Promise<Response>
      * @throws HttpException
      * @throws \Throwable
