@@ -17,13 +17,13 @@ ApiClient is the main class of this library: it contains methods that wrap Magen
 ```php
 <?php
 
-use Amp\Artax\DefaultClient;
+use Amp\Http\Client\HttpClientBuilder;
 use Webgriffe\AmpMagento\ApiClient;
 
 require_once __DIR__.'/vendor/autoload.php';
 
 $client = new ApiClient(
-    new DefaultClient(),
+    HttpClientBuilder::buildDefault(),
     [
         'baseUrl' => 'http://magento.base.url',
         'username' => 'magento-username',

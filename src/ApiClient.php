@@ -46,7 +46,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
             if ($response->getStatus() === 404) {
                 return null;
@@ -70,7 +70,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
             throw yield $this->unexpectedResponseException($request, $response);
         });
@@ -90,7 +90,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -116,7 +116,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -144,7 +144,7 @@ final class ApiClient
             $response = yield $this->makeApiRequest($request);
 
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -170,7 +170,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -201,7 +201,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -232,7 +232,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -253,7 +253,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -278,7 +278,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -313,7 +313,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -337,7 +337,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -364,9 +364,9 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
-            $responseBody = yield $response->getBody()->read();
+            $responseBody = yield $response->getBody()->buffer();
             $error = json_decode($responseBody ?? '', true);
             // TODO Improvement: make a more robust way to handle product already linked to configurable error
             $productAlreadyLinkedMessage = ($error['message'] === 'Product has been already attached') ||
@@ -418,7 +418,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -442,7 +442,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -491,7 +491,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -510,7 +510,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -525,7 +525,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
             if ($response->getStatus() === 404) {
                 return null;
@@ -550,7 +550,7 @@ final class ApiClient
                 /** @var Response $response */
                 $response = yield $this->makeApiRequest($request);
                 if ($response->getStatus() === 200) {
-                    return json_decode((yield $response->getBody()->read()) ?? '', true);
+                    return json_decode((yield $response->getBody()->buffer()) ?? '', true);
                 }
 
                 throw yield $this->unexpectedResponseException($request, $response);
@@ -569,7 +569,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
             if ($response->getStatus() === 404) {
                 return false;
@@ -596,7 +596,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
             if ($response->getStatus() === 404) {
                 return false;
@@ -621,7 +621,7 @@ final class ApiClient
                 /** @var Response $response */
                 $response = yield $this->makeApiRequest($request);
                 if ($response->getStatus() === 200) {
-                    return json_decode((yield $response->getBody()->read()) ?? '', true);
+                    return json_decode((yield $response->getBody()->buffer()) ?? '', true);
                 }
 
                 throw yield $this->unexpectedResponseException($request, $response);
@@ -640,7 +640,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
             if ($response->getStatus() === 404) {
                 return false;
@@ -660,7 +660,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -679,7 +679,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -699,7 +699,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
 
             throw yield $this->unexpectedResponseException($request, $response);
@@ -718,7 +718,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->makeApiRequest($request);
             if ($response->getStatus() === 200) {
-                return json_decode((yield $response->getBody()->read()) ?? '', true);
+                return json_decode((yield $response->getBody()->buffer()) ?? '', true);
             }
             throw yield $this->unexpectedResponseException($request, $response);
         });
@@ -750,7 +750,7 @@ final class ApiClient
             /** @var Response $response */
             $response = yield $this->client->request($request, new NullCancellationToken());
             if ($response->getStatus() === 200) {
-                $this->token = json_decode((yield $response->getBody()->read()) ?? '', true);
+                $this->token = json_decode((yield $response->getBody()->buffer()) ?? '', true);
                 return;
             }
 
@@ -813,7 +813,7 @@ final class ApiClient
             function () use ($request, $response) {
                 $responseStatus = $response->getStatus();
                 $requestBody = yield $request->getBody()->createBodyStream()->read();
-                $responseBody = yield $response->getBody()->read();
+                $responseBody = yield $response->getBody()->buffer();
                 $responseDecoded = json_decode($responseBody ?? '', true);
                 $responseMessage = '<undefined>';
                 if (\is_array($responseDecoded) && array_key_exists('message', $responseDecoded)) {
