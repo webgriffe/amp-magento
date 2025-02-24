@@ -867,7 +867,7 @@ final class ApiClient
             $data = preg_replace_callback(
                 '/[\x80-\xFF]+/',
                 function ($m) {
-                    return utf8_encode($m[0]);
+                    return mb_convert_encoding($m[0], 'UTF-8', 'ISO-8859-1');
                 },
                 $data
             );

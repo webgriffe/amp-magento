@@ -1389,6 +1389,26 @@ class ApiClientTest extends TestCase
         $this->assertNotNull($foundProduct);
     }
 
+    public function testRequestWithUtf8Characters()
+    {
+        $this->assertCount(0, Routes::$products);
+
+        $productData = [
+            'product' => [
+                'sku' => 'SKU-123',
+                'name' => "Product Name \xA4\xA6\xA8\xB4\xB8\xBC\xBD\xBE",
+                'price' => 10,
+                'weight' => 1.5,
+            ]
+        ];
+        $createdProduct = wait($this->client->createProduct($productData));
+
+        $this->assertCount(1, Routes::$products);
+        $this->assertEquals('SKU-123', $createdProduct['sku']);
+        $this->assertEquals('Product Name €ŠšŽžŒœŸ', $createdProduct['name']);
+        $this->assertEquals(10, $createdProduct['price']);
+        $this->assertEquals(1.5, $createdProduct['weight']);
+    }
     private function getStockItemData(array $override): array
     {
         return array_merge(
