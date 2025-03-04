@@ -788,6 +788,7 @@ final class ApiClient
             }
             $request->setHeader('Authorization', 'Bearer ' . $this->token);
             $request->setTransferTimeout($this->config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
+            $request->setInactivityTimeout($this->config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
             /** @var Response $response */
             $response = yield $this->client->request($request, new NullCancellationToken());
             // TODO: Improvement: re-login attempt should be unit tested
@@ -795,6 +796,7 @@ final class ApiClient
                 yield $this->login();
                 $request->setHeader('Authorization', 'Bearer ' . $this->token);
                 $request->setTransferTimeout($this->config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
+                $request->setInactivityTimeout($this->config['clientTimeout'] ?? self::DEFAULT_CLIENT_TIMEOUT);
                 $response = yield $this->client->request($request, new NullCancellationToken());
             }
             return $response;
